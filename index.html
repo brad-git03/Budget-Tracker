@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vanilla JS Dynamic Budget Tracker</title>
+    
+    <style>
+        /* Reset and General Setup */
+        * {
+            box-sizing: border-box;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            margin: 0;
+            padding: 20px 10px;
+        }
+        #app-container {
+            max-width: 768px;
+            margin: 0 auto;
+        }
+
+        /* Card Styling */
+        .card {
+            background-color: #ffffff;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 24px;
+        }
+        .app-header {
+            font-size: 1.875rem; 
+            font-weight: 800; 
+            color: #1f2937; 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 24px;
+        }
+
+        /* Tabs Styling */
+        #tab-bar {
+            display: flex;
+            margin-bottom: 24px;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #e5e7eb;
+        }
+        .tab-btn {
+            flex-grow: 1;
+            padding: 12px 0;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background-color: transparent;
+            color: #4b5563;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .tab-btn.active {
+            background-color: #ffffff;
+            color: #ef4444;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-bottom: 3px solid #ef4444;
+        }
+
+        /* Inputs and Buttons */
+        input[type="text"], input[type="number"], input[type="date"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            transition: border-color 0.2s;
+        }
+        input:focus {
+            border-color: #ef4444;
+            outline: none;
+        }
+        .btn {
+            padding: 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            border: none;
+        }
+        .btn-primary {
+            background-color: #ef4444;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #dc2626;
+        }
+        .btn-success {
+            background-color: #10b981;
+            color: white;
+        }
+        .btn-success:hover {
+            background-color: #059669;
+        }
+        .btn-finalize {
+            background-color: #2563eb;
+            color: white;
+        }
+        .btn-finalize:hover {
+            background-color: #1d4ed8;
+        }
+
+        /* Summary Section Layout */
+        #summary-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #visualization-container {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        /* Summary Grid Items */
+        #summary-grid {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        .summary-item {
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid;
+            overflow: hidden; 
+        }
+        .summary-item p {
+            white-space: normal; 
+            overflow: visible; 
+            text-overflow: clip; 
+            margin: 0; 
+        }
+        .budget-item {
+            border-left-color: #4f46e5;
+            background-color: #f5f3ff; 
+        }
+        .expense-item {
+            grid-column: span 1;
+            border-left-color: #ef4444;
+            background-color: #fef2f2;
+        }
+        .remaining-green {
+            border-left-color: #10b981;
+            background-color: #f0fff4;
+        }
+        .remaining-red {
+            border-left-color: #ef4444;
+            background-color: #fef2f2;
+        }
+
+        /* Transaction Item Styling */
+        #history-list-container {
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 8px;
+            margin-top: 16px;
+        }
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            margin-bottom: 8px;
+            background-color: #fffbeb;
+            border-right: 4px solid #f59e0b;
+        }
+        .transaction-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+        .transaction-description-wrapper {
+            overflow: hidden;
+        }
+        .transaction-description-wrapper p {
+            white-space: nowrap; 
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin: 0;
+        }
+        .transaction-amount-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            margin-left: 8px;
+        }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 50%;
+            transition: color 0.2s;
+            flex-shrink: 0;
+        }
+        .delete-btn:hover {
+            color: #ef4444;
+        }
+
+        /* History Card Styles */
+        .history-record {
+            padding: 16px;
+            border-radius: 12px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 12px;
+            border-left: 6px solid #2563eb;
+        }
+        .history-record.overspent {
+            border-left: 6px solid #ef4444;
+        }
+        .history-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: #2563eb;
+        }
+        .history-title.overspent {
+            color: #ef4444;
+        }
+        .history-data {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            margin-bottom: 4px;
+        }
+        .history-label {
+            color: #6b7280;
+        }
+        .history-value {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .summary-note {
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-top: 12px;
+            padding-top: 8px;
+            border-top: 1px dashed #e5e7eb;
+        }
+        .summary-note.saved {
+            color: #10b981;
+        }
+        .summary-note.overspent-note {
+            color: #ef4444;
+        }
+
+        /* Desktop Layout (min-width: 640px) */
+        @media (min-width: 640px) {
+            body {
+                padding: 20px;
+            }
+            #summary-section {
+                flex-direction: row; 
+                align-items: flex-start; 
+                gap: 24px;
+            }
+            #visualization-container {
+                width: 40%; 
+                max-width: 200px;
+                margin-bottom: 0;
+            }
+            #summary-grid {
+                width: 60%; 
+                grid-template-columns: 1fr 1fr;
+            }
+            .expense-item {
+                grid-column: span 2;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <div id="loading-indicator" style="display: flex; justify-content: center; align-items: center; min-height: 50vh;">
+            <div style="font-size: 1.25rem; font-weight: 600; color: #4b5563;">Loading Application...</div>
+        </div>
+    </div>
+
+    <script>
+        // --- Configuration Keys ---
+        const BUDGET_KEY = 'budgetApp_daily_budget';
+        const CURRENT_EXPENSES_KEY = 'budgetApp_current_expenses'; // Unified key for current day's log
+        const DAILY_RECORDS_KEY = 'budgetApp_daily_history'; // New key for finalized days
+        const CURRENT_CYCLE_DATE_KEY = 'budgetApp_current_cycle_date'; // Key for the user-selected cycle date
+
+        // --- Global State Variables ---
+        let budget = 0;
+        let currentExpenses = [];
+        let dailyRecords = []; // Stores finalized daily summaries
+        let expenses = 0; // Total expense for the current cycle
+        let balance = 0; // Remaining (Budget - Total)
+        let currentView = 'current'; // 'current' or 'history'
+        
+        // The date for which the current expenses are being logged
+        // This is stored in ISO format (YYYY-MM-DD) for input[type="date"]
+        let currentCycleDate = new Date().toISOString().split('T')[0]; 
+
+        // --- DOM Elements ---
+        const appContainer = document.getElementById('app-container');
+
+        // --- Helper Functions ---
+
+        /**
+         * Formats a number as Philippine Peso (PHP) currency.
+         * @param {number} amount 
+         * @returns {string} Formatted currency string.
+         */
+        const formatCurrency = (amount) => {
+            return new Intl.NumberFormat('fil-PH', {
+                style: 'currency',
+                currency: 'PHP',
+                minimumFractionDigits: 2
+            }).format(amount);
+        };
+        
+        /**
+         * Generates a simple unique ID for local storage transactions.
+         */
+        const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+
+        /**
+         * Loads data from localStorage.
+         */
+        const loadData = () => {
+            budget = parseFloat(localStorage.getItem(BUDGET_KEY) || 0);
+            
+            // Load current cycle date
+            currentCycleDate = localStorage.getItem(CURRENT_CYCLE_DATE_KEY) || new Date().toISOString().split('T')[0];
+
+            const loadArray = (key) => {
+                try {
+                    const rawData = JSON.parse(localStorage.getItem(key) || '[]');
+                    return rawData.map(t => ({
+                        ...t,
+                        // Ensure amount is float and date is present
+                        amount: parseFloat(t.amount),
+                        date: t.date || currentCycleDate,
+                        // Ensure optional properties for history are handled
+                        startingBudget: t.startingBudget !== undefined ? parseFloat(t.startingBudget) : undefined,
+                        endingBalance: t.endingBalance !== undefined ? parseFloat(t.endingBalance) : undefined,
+                        totalExpenses: t.totalExpenses !== undefined ? parseFloat(t.totalExpenses) : undefined,
+                    }));
+                } catch (e) {
+                    console.error(`Error loading data for key ${key}:`, e);
+                    return [];
+                }
+            };
+            
+            currentExpenses = loadArray(CURRENT_EXPENSES_KEY);
+            dailyRecords = loadArray(DAILY_RECORDS_KEY);
+        };
+
+        /**
+         * Saves all current state data to localStorage.
+         */
+        const saveData = () => {
+            localStorage.setItem(BUDGET_KEY, budget.toString());
+            
+            // Save current cycle date
+            localStorage.setItem(CURRENT_CYCLE_DATE_KEY, currentCycleDate);
+
+            // Current expenses: sorted by creation date (newest first)
+            const sortedCurrent = currentExpenses.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            localStorage.setItem(CURRENT_EXPENSES_KEY, JSON.stringify(sortedCurrent));
+            
+            // Daily records: sorted by date (newest first for log viewing)
+            const sortedRecords = dailyRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+            localStorage.setItem(DAILY_RECORDS_KEY, JSON.stringify(sortedRecords));
+        };
+
+        /**
+         * Calculates total expenses for the current cycle.
+         */
+        const calculateTotals = () => {
+            expenses = currentExpenses.reduce((sum, t) => sum + t.amount, 0);
+            balance = budget - expenses;
+            return { expenses, balance };
+        };
+
+        // --- Core Logic ---
+
+        /**
+         * Finalizes the current day's cycle, archives the data, and resets the budget.
+         */
+        const finalizeDay = () => {
+            if (budget === 0 && currentExpenses.length === 0) {
+                console.log("No budget or expenses to finalize.");
+                // Use a simple prompt replacement for alert
+                const container = document.getElementById('finalize-status');
+                if(container) {
+                    container.innerHTML = '<p style="color: #ef4444; font-weight: 600;">Error: Please set a budget or log an expense before finalizing.</p>';
+                    setTimeout(() => container.innerHTML = '', 3000);
+                }
+                return;
+            }
+
+            const { expenses: finalExpenses, balance: finalBalance } = calculateTotals();
+
+            // 1. Create the historical record using the currently set cycle date
+            const newRecord = {
+                id: generateId(),
+                date: currentCycleDate, // Use the dynamic cycle date (YYYY-MM-DD)
+                startingBudget: budget,
+                endingBalance: finalBalance,
+                totalExpenses: finalExpenses,
+                transactions: [...currentExpenses] // Save a snapshot of all transactions
+            };
+
+            // 2. Archive the record
+            dailyRecords.unshift(newRecord); 
+
+            // 3. Reset state for the next day
+            budget = 0;
+            currentExpenses = [];
+            
+            // Advance the date to the next day automatically for convenience
+            const nextDay = new Date(currentCycleDate);
+            nextDay.setDate(nextDay.getDate() + 1);
+            currentCycleDate = nextDay.toISOString().split('T')[0];
+            
+            // 4. Update UI and storage
+            renderApp();
+            renderBudgetSetter(true); // Automatically open the budget setter for the new day
+            
+            // Simple notification
+            const container = document.getElementById('finalize-status');
+            if(container) {
+                 container.innerHTML = '<p style="color: #10b981; font-weight: 600;">Cycle Finalized! Set your new budget for the next date.</p>';
+                 setTimeout(() => container.innerHTML = '', 4000);
+            }
+        };
+
+
+        // --- UI Rendering ---
+        
+        /**
+         * Renders the SVG Donut Chart and its Legend.
+         */
+        const renderBudgetVisualization = () => {
+            if (budget <= 0) {
+                return `
+                    <div style="display: flex; flex-direction: column; align-items: center; padding: 16px; width: 100%;">
+                        <svg viewBox="0 0 100 100" width="120" height="120">
+                            <circle cx="50" cy="50" r="45" fill="transparent" stroke="#e5e7eb" stroke-width="10"/>
+                            <text x="50" y="50" text-anchor="middle" dominant-baseline="middle" style="font-size: 7px; font-weight: bold; fill: #4b5563;">
+                                SET DAILY
+                            </text>
+                        </svg>
+                        <p style="margin-top: 16px; text-align: center; font-size: 0.875rem; font-weight: 600; color: #6b7280;">
+                            Set your budget to start logging expenses.
+                        </p>
+                    </div>
+                `;
+            }
+
+            const isOver = expenses > budget;
+            const spentPercentage = budget > 0 ? Math.min(100, (expenses / budget) * 100) : 0;
+            
+            const radius = 45;
+            const strokeWidth = 10;
+            const circumference = 2 * Math.PI * radius;
+            const spentStroke = (spentPercentage / 100) * circumference;
+            const spentColorHex = isOver ? '#ef4444' : '#f59e0b';
+            
+            const centerText = isOver ? 'OVER BUDGET' : `${Math.round(spentPercentage)}% SPENT`;
+            const bottomText = isOver 
+                ? `${formatCurrency(Math.abs(balance))} Over` 
+                : `${formatCurrency(balance)} Remaining`;
+            
+            const svgMarkup = `
+                <svg viewBox="0 0 100 100" width="120" height="120" style="transform: rotate(-90deg); flex-shrink: 0;">
+                    <circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="#e5e7eb" stroke-width="${strokeWidth}" />
+                    <circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="${spentColorHex}" stroke-width="${strokeWidth}"
+                            stroke-dasharray="${spentStroke} ${circumference}" stroke-dashoffset="0" stroke-linecap="round" />
+
+                    <g transform="rotate(90 50 50)">
+                        <text x="50" y="50" text-anchor="middle" dominant-baseline="middle" 
+                              style="font-size: 7px; font-weight: bold; fill: ${isOver ? '#ef4444' : '#4b5563'};">
+                            ${centerText}
+                        </text>
+                    </g>
+                </svg>
+            `;
+
+            return `
+                <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+                    <div style="display: flex; align-items: center; justify-content: center; width: 100%;">
+                        ${svgMarkup}
+                    </div>
+                    <p style="padding-top: 8px; text-align: center; font-size: 1rem; font-weight: 600; color: ${isOver ? '#ef4444' : '#10b981'};">
+                        ${bottomText}
+                    </p>
+                </div>
+            `;
+        };
+
+        /**
+         * Main render function to update the entire application UI structure.
+         */
+        const renderApp = () => {
+            calculateTotals(); 
+            const isOverBudget = balance < 0;
+
+            const balanceColor = isOverBudget ? '#ef4444' : (balance > 0 ? '#10b981' : '#6b7280');
+            const remainingCardClasses = isOverBudget ? 'remaining-red' : 'remaining-green';
+
+            appContainer.innerHTML = `
+                <h1 class="app-header">
+                    <span style="font-size: 1.875rem; margin-right: 8px; color: #ef4444; font-weight: bold;">₱</span>
+                    Daily Budget Tracker (PHP)
+                </h1>
+                
+                <section id="summary-section" class="card">
+                    <div id="visualization-container">
+                        ${renderBudgetVisualization()}
+                    </div>
+                    <div id="summary-grid">
+                        <div class="summary-item budget-item">
+                            <h2 style="font-size: 0.875rem; font-weight: 500; color: #6b7280;">Daily Budget (Starting)</h2>
+                            <p style="font-size: 1.5rem; font-weight: bold; color: #4f46e5;" id="total-budget-display">
+                                ${formatCurrency(budget)}
+                            </p>
+                        </div>
+                        <div class="summary-item ${remainingCardClasses}">
+                            <h2 style="font-size: 0.875rem; font-weight: 500; color: #6b7280;">Current Remaining Balance</h2>
+                            <p style="font-size: 1.5rem; font-weight: bold; color: ${balanceColor};" id="remaining-budget-display">
+                                ${formatCurrency(balance)}
+                            </p>
+                        </div>
+                        <div class="summary-item expense-item">
+                            <h2 style="font-size: 0.875rem; font-weight: 500; color: #6b7280;">Total Expenses for Current Cycle</h2>
+                            <p style="font-size: 1.5rem; font-weight: bold; color: #ef4444;" id="total-expenses-display">
+                                ${formatCurrency(expenses)}
+                            </p>
+                        </div>
+                    </div>
+                </section>
+
+                <div id="tab-bar">
+                    <button id="tab-current-btn" class="tab-btn ${currentView === 'current' ? 'active' : ''}">
+                        Active Cycle (${currentExpenses.length} Entries)
+                    </button>
+                    <button id="tab-history-btn" class="tab-btn ${currentView === 'history' ? 'active' : ''}">
+                        Daily History (${dailyRecords.length} Days)
+                    </button>
+                </div>
+
+                <div id="view-content-container">
+                    </div>
+            `;
+
+            // --- 2. Attach Dynamic Renderers/Listeners ---
+            attachViewEventListeners();
+            renderActiveView(); 
+            saveData(); 
+        };
+        
+        /**
+         * Attaches listeners for tab switching.
+         */
+        const attachViewEventListeners = () => {
+            document.getElementById('tab-current-btn').addEventListener('click', () => switchToView('current'));
+            document.getElementById('tab-history-btn').addEventListener('click', () => switchToView('history'));
+        };
+
+        /**
+         * Switches the application view and re-renders.
+         */
+        const switchToView = (view) => {
+            if (currentView !== view) {
+                currentView = view;
+                renderApp();
+            }
+        };
+
+        /**
+         * Renders the content (form + history) for the currently active tab.
+         */
+        const renderActiveView = () => {
+            const container = document.getElementById('view-content-container');
+            if (!container) return;
+
+            container.innerHTML = ''; 
+
+            if (currentView === 'current') {
+                container.innerHTML = renderCurrentDayManager();
+                
+                // Attach Date Setter logic
+                document.getElementById('set-cycle-date-btn').addEventListener('click', setCycleDate);
+
+                // Attach Budget Setter logic
+                renderBudgetSetter(budget === 0);
+                
+                // Attach Expense Form logic
+                document.getElementById('add-expense-form').addEventListener('submit', addExpense);
+                
+                // Attach Finalization logic
+                document.getElementById('finalize-day-btn').addEventListener('click', finalizeDay);
+
+                renderExpenseHistory();
+            } else {
+                container.innerHTML = renderDailyHistory();
+            }
+        };
+
+        /**
+         * Sets the current active cycle date.
+         */
+        const setCycleDate = () => {
+            const input = document.getElementById('cycle-date-input');
+            const newDate = input.value;
+            
+            // Simple validation: ensure a date is selected
+            if (!newDate) {
+                 console.error('Please select a valid date.');
+                 return;
+            }
+
+            if (newDate !== currentCycleDate) {
+                // If the user changes the date, we treat it as starting a new cycle
+                // BUT we don't clear expenses, as they might be logging a past day.
+                currentCycleDate = newDate;
+                renderApp();
+            }
+        };
+
+
+        // --- Current Day View Components ---
+
+        const renderCurrentDayManager = () => {
+            const today = new Date().toISOString().split('T')[0];
+            // Uses localized long format display (e.g., October 5, 2025)
+            const displayDate = new Date(currentCycleDate).toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            
+            return `
+                <section class="card" style="background-color: #e0f2fe; border-left: 6px solid #2563eb;">
+                    <h2 style="font-size: 1.25rem; font-weight: 700; color: #1e3a8a; margin-bottom: 16px;">
+                        Active Budget Cycle Date: <span style="color: #2563eb;">${displayDate}</span>
+                    </h2>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="date" id="cycle-date-input" value="${currentCycleDate}" max="${today}" style="flex-grow: 1;" required />
+                        <button id="set-cycle-date-btn" class="btn btn-finalize" style="padding: 12px 16px; flex-shrink: 0;">
+                            Set Date
+                        </button>
+                    </div>
+                    <p style="margin-top: 10px; font-size: 0.85rem; color: #1e3a8a;">
+                        All expenses logged and finalization will be attributed to the date above.
+                    </p>
+                </section>
+
+                <section class="card" style="background-color: #fef2f2; border-left: 6px solid #ef4444;">
+                    <h2 style="font-size: 1.25rem; font-weight: 700; color: #991b1b; margin-bottom: 16px;">
+                        Finalize Cycle for ${displayDate}
+                    </h2>
+                    <p style="font-size: 0.9rem; color: #991b1b; margin-bottom: 12px;">
+                        Click below to archive this date's data and automatically move to the next day.
+                    </p>
+                    <button id="finalize-day-btn" class="btn btn-primary" style="width: 100%;">
+                        Finalize and Archive Cycle
+                    </button>
+                    <div id="finalize-status" style="margin-top: 10px; text-align: center;"></div>
+                </section>
+                
+                <section id="budget-setter-section" class="card"></section>
+
+                <section class="card">
+                    <h2 style="font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">Log Expense</h2>
+                    <form id="add-expense-form" style="display: flex; flex-direction: column; gap: 16px;">
+                        <input type="text" id="expense-description-input" placeholder="Expense Description (e.g., Lunch, Bus Fare)" required />
+                        <input type="number" id="expense-amount-input" placeholder="Amount (e.g., 150.75)"
+                            min="0.01" step="0.01" required />
+                        
+                        <button type="submit" class="btn btn-primary" ${budget === 0 ? 'disabled' : ''} title="${budget === 0 ? 'Set a budget first!' : 'Log Expense'}">
+                            Log Expense for ${new Date(currentCycleDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                        </button>
+                        ${budget === 0 ? '<p style="color:#ef4444; text-align:center; font-weight:600;">⚠️ Please set your initial budget above before logging expenses.</p>' : ''}
+                    </form>
+                </section>
+
+                <section class="card">
+                    <h2 style="font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">Expense Log for ${displayDate}</h2>
+                    <div id="history-list-container">
+                        </div>
+                </section>
+            `;
+        };
+
+        /**
+         * Renders the budget setting UI dynamically.
+         */
+        const renderBudgetSetter = (isEditing = false) => {
+            const container = document.getElementById('budget-setter-section');
+            if (!container) return;
+            
+            const currentBudgetDisplay = formatCurrency(budget);
+
+            if (isEditing) {
+                container.innerHTML = `
+                    <h2 style="font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">
+                        Set Budget Amount
+                    </h2>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" id="new-budget-input" placeholder="Enter New Budget Amount" value="${budget.toString()}"
+                            min="0" step="0.01" style="flex-grow: 1;" required />
+                        <button id="save-budget-btn" class="btn btn-success" style="padding: 12px 16px; flex-shrink: 0;">
+                            Save
+                        </button>
+                    </div>
+                `;
+                document.getElementById('save-budget-btn').addEventListener('click', saveBudget);
+            } else {
+                container.innerHTML = `
+                    <h2 style="font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">
+                        Current Daily Budget: ${currentBudgetDisplay}
+                    </h2>
+                    <button id="change-budget-btn" class="btn" style="width: 100%; background-color: #e5e7eb; color: #1f2937;">
+                        Change Budget
+                    </button>
+                `;
+                document.getElementById('change-budget-btn').addEventListener('click', () => renderBudgetSetter(true));
+            }
+        };
+
+        /**
+         * Saves the new budget amount to state and localStorage.
+         */
+        const saveBudget = () => {
+            const input = document.getElementById('new-budget-input');
+            const value = parseFloat(input.value.trim());
+
+            if (isNaN(value) || value < 0) {
+                console.error('Please enter a valid positive number for the budget.');
+                return;
+            }
+
+            budget = value;
+            renderApp();
+            renderBudgetSetter(false); 
+        };
+
+        /**
+         * Renders the current expense history list.
+         */
+        const renderExpenseHistory = () => {
+            const container = document.getElementById('history-list-container');
+            if (!container) return;
+
+            if (currentExpenses.length === 0) {
+                container.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 32px;">No expenses logged for this cycle date.</div>';
+                return;
+            }
+
+            container.innerHTML = currentExpenses.map(t => {
+                const displayTime = new Date(t.createdAt).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                
+                return `
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div style="width: 16px; height: 16px; border-radius: 50%; background-color: #f59e0b; flex-shrink: 0;"></div>
+                            <div class="transaction-description-wrapper">
+                                <p style="font-weight: 500; color: #1f2937;">${t.description}</p>
+                                <p style="font-size: 0.75rem; color: #6b7280; font-weight: 700;">Logged: ${displayTime}</p>
+                            </div>
+                        </div>
+                        <div class="transaction-amount-actions">
+                            <span style="font-weight: 600; color: #ef4444; white-space: nowrap;">
+                                - ${formatCurrency(t.amount)}
+                            </span>
+                            <button data-id="${t.id}" class="delete-btn" aria-label="Delete expense">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    deleteExpense(e.currentTarget.dataset.id);
+                });
+            });
+        };
+
+        /**
+         * Adds a new expense for the current cycle.
+         */
+        const addExpense = (e) => {
+            e.preventDefault();
+
+            if (budget === 0) {
+                console.error('Set a budget before logging expenses.');
+                return;
+            }
+
+            const descriptionInput = document.getElementById('expense-description-input');
+            const amountInput = document.getElementById('expense-amount-input');
+            
+            const cleanDescription = descriptionInput.value.trim();
+            const cleanAmount = parseFloat(amountInput.value.trim());
+            // The expense date is now the current cycle date
+            const cleanDate = currentCycleDate; 
+
+            if (!cleanDescription || isNaN(cleanAmount) || cleanAmount <= 0) {
+                console.error('Please fill all fields with valid data.');
+                return;
+            }
+
+            const expenseData = {
+                id: generateId(),
+                description: cleanDescription,
+                amount: cleanAmount,
+                date: cleanDate, // Date is set by the cycle date picker
+                createdAt: new Date().toISOString(), // Date created in app
+            };
+
+            currentExpenses.unshift(expenseData); // Add to the start
+            
+            descriptionInput.value = '';
+            amountInput.value = '';
+            
+            renderApp(); 
+        };
+
+        /**
+         * Deletes an expense from the current cycle list.
+         * @param {string} id The expense ID.
+         */
+        const deleteExpense = (id) => {
+            currentExpenses = currentExpenses.filter(t => t.id !== id);
+            renderApp();
+        };
+
+        // --- Daily History View Components ---
+
+        const renderDailyHistory = () => {
+            if (dailyRecords.length === 0) {
+                return `
+                    <section class="card">
+                        <h2 style="font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">Daily History Archive</h2>
+                        <div style="text-align: center; color: #6b7280; padding: 32px;">
+                            No daily cycles have been finalized yet.
+                        </div>
+                    </section>
+                `;
+            }
+
+            const historyListMarkup = dailyRecords.map(record => {
+                const isOverspent = record.endingBalance < 0;
+                const recordClass = isOverspent ? 'overspent' : '';
+                const titleColorClass = isOverspent ? 'overspent' : '';
+                
+                // Uses localized long format display (e.g., October 5, 2025)
+                const displayDate = new Date(record.date).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
+                const absoluteBalance = Math.abs(record.endingBalance);
+                let summaryNoteText;
+                let summaryNoteClass;
+
+                if (isOverspent) {
+                    summaryNoteText = `❌ You went over budget by ${formatCurrency(absoluteBalance)} on ${displayDate}.`;
+                    summaryNoteClass = 'overspent-note';
+                } else if (record.endingBalance > 0) {
+                    summaryNoteText = `🎉 You saved ${formatCurrency(absoluteBalance)} on ${displayDate}! Keep up the great work.`;
+                    summaryNoteClass = 'saved';
+                } else {
+                    summaryNoteText = `✅ You spent exactly your budget amount on ${displayDate}.`;
+                    summaryNoteClass = '';
+                }
+
+
+                return `
+                    <div class="history-record ${recordClass}">
+                        <div class="history-title ${titleColorClass}">
+                            Finalized Day: ${displayDate}
+                        </div>
+                        <div class="history-data">
+                            <span class="history-label">Starting Budget:</span>
+                            <span class="history-value">${formatCurrency(record.startingBudget)}</span>
+                        </div>
+                        <div class="history-data">
+                            <span class="history-label">Total Expenses:</span>
+                            <span class="history-value" style="color: #ef4444;">- ${formatCurrency(record.totalExpenses)}</span>
+                        </div>
+                        <div class="history-data">
+                            <span class="history-label" style="font-weight: 700;">Final Balance:</span>
+                            <span class="history-value" style="font-weight: 700; color: ${isOverspent ? '#ef4444' : '#10b981'};">
+                                ${formatCurrency(record.endingBalance)}
+                            </span>
+                        </div>
+                        
+                        <div class="summary-note ${summaryNoteClass}">
+                            ${summaryNoteText}
+                        </div>
+                        <p style="text-align: right; margin-top: 8px; font-size: 0.75rem; color: #6b7280;">
+                            ${record.transactions.length} transactions logged.
+                        </p>
+                    </div>
+                `;
+            }).join('');
+
+            return `
+                <section class="card">
+                    <h2 style="font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">Daily History Archive</h2>
+                    <div id="daily-history-list" style="max-height: 60vh; overflow-y: auto; padding-right: 5px;">
+                        ${historyListMarkup}
+                    </div>
+                </section>
+            `;
+        };
+
+
+        // --- Initialization ---
+        
+        const initializeApp = () => {
+            loadData();
+            // Check if the application container exists before rendering
+            if (appContainer) {
+                renderApp();
+            } else {
+                console.error('App container not found.');
+            }
+        };
+
+        window.onload = initializeApp;
+    </script>
+</body>
+</html>
