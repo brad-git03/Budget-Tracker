@@ -6,6 +6,22 @@
     <title>Vanilla JS Dynamic Budget Tracker</title>
     
     <style>
+        /* --- Color Palette Variables --- */
+        :root {
+            --primary-orange: #FBA002; /* Bright Orange Accent */
+            --dark-olive: #313B2F; /* Deep Background */
+            --hover-orange: #e59002;
+            --subtle-gray: #e5e7eb; /* Light Gray for borders/dividers */
+            --success-complement: #6a7e2b; /* Sage Green for positive balance */
+            
+            /* Tints and Text on Dark Background */
+            --olive-tint: #4A5649; /* Secondary Dark Container background */
+            --orange-tint: #FFF3E0; /* Lighter orange tint */
+            --white-text: #ffffff; 
+            --light-text: #e0e0e0; 
+            --box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4); /* Stronger shadow for dark background */
+        }
+
         /* Reset and General Setup */
         * {
             box-sizing: border-box;
@@ -13,30 +29,62 @@
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
+            background-color: var(--dark-olive); /* Deep Olive for body background */
+            color: var(--light-text); /* Light text on dark background */
             margin: 0;
             padding: 20px 10px;
         }
         #app-container {
-            max-width: 768px;
+            max-width: 900px; /* Increased max width */
             margin: 0 auto;
         }
 
         /* Card Styling */
         .card {
-            background-color: #ffffff;
+            background-color: var(--white-text); /* Default card background is white for focus */
             padding: 24px;
             border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--box-shadow);
             margin-bottom: 24px;
+            transition: background-color 0.3s;
+            color: var(--dark-olive); /* Default text color for white cards */
         }
         .app-header {
-            font-size: 1.875rem; 
+            font-size: 2rem; 
             font-weight: 800; 
-            color: #1f2937; 
+            color: var(--white-text); 
             display: flex; 
             align-items: center; 
-            margin-bottom: 24px;
+            margin-bottom: 32px;
+        }
+        .app-header span {
+            color: var(--primary-orange) !important; 
+        }
+
+        /* --- Specific Card Overrides --- */
+        
+        /* Summary section needs to be distinctly visible, keep it white */
+        #summary-section {
+            background-color: #ffffff; 
+            display: flex; /* Setup for desktop layout */
+            flex-direction: column; /* Default stack on mobile */
+            gap: 24px;
+        }
+
+        /* Date Setter, Budget Setter, Finalize (Actions/Settings) - White background for focus */
+        #date-setter-card, #budget-setter-card, #finalize-card, #add-expense-card {
+            background-color: var(--white-text); 
+            color: var(--dark-olive); 
+        }
+
+        /* Expense History and Daily Archive (Logs/Records) - Olive Tint background */
+        #expense-history-card, #history-archive-card {
+            background-color: var(--olive-tint); 
+            color: var(--white-text);
+            border-left: 6px solid var(--primary-orange);
+        }
+        #expense-history-card h2, #history-archive-card h2 {
+            color: var(--white-text);
         }
 
         /* Tabs Styling */
@@ -45,9 +93,11 @@
             margin-bottom: 24px;
             border-radius: 8px;
             overflow: hidden;
-            background-color: #e5e7eb;
+            background-color: var(--olive-tint); 
+            box-shadow: var(--box-shadow);
         }
         .tab-btn {
+            /* ... (keep existing tab styles) ... */
             flex-grow: 1;
             padding: 12px 0;
             text-align: center;
@@ -55,29 +105,32 @@
             cursor: pointer;
             border: none;
             background-color: transparent;
-            color: #4b5563;
-            transition: background-color 0.2s, color 0.2s;
+            color: var(--light-text); 
+            transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
         }
         .tab-btn.active {
-            background-color: #ffffff;
-            color: #ef4444;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-            border-bottom: 3px solid #ef4444;
+            background-color: var(--primary-orange); 
+            color: var(--white-text); 
         }
+        .tab-btn:hover:not(.active) {
+            background-color: rgba(255, 255, 255, 0.1); 
+            color: var(--white-text);
+        }
+
 
         /* Inputs and Buttons */
         input[type="text"], input[type="number"], input[type="date"] {
+            /* ... (keep existing input styles) ... */
             width: 100%;
             padding: 12px;
             border: 1px solid #ccc;
             border-radius: 8px;
             transition: border-color 0.2s;
-        }
-        input:focus {
-            border-color: #ef4444;
-            outline: none;
+            background-color: #ffffff; 
+            color: var(--dark-olive); 
         }
         .btn {
+            /* ... (keep existing button styles) ... */
             padding: 12px;
             border-radius: 8px;
             font-weight: 700;
@@ -85,43 +138,16 @@
             transition: background-color 0.2s, box-shadow 0.2s;
             border: none;
         }
-        .btn-primary {
-            background-color: #ef4444;
-            color: white;
-        }
-        .btn-primary:hover {
-            background-color: #dc2626;
-        }
         .btn-success {
-            background-color: #10b981;
+            background-color: var(--success-complement);
             color: white;
         }
         .btn-success:hover {
-            background-color: #059669;
-        }
-        .btn-finalize {
-            background-color: #2563eb;
-            color: white;
-        }
-        .btn-finalize:hover {
-            background-color: #1d4ed8;
+            background-color: #5c6c24; 
         }
 
-        /* Summary Section Layout */
-        #summary-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        #visualization-container {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-        
-        /* Summary Grid Items */
+
+        /* Summary Grid Items - Refined for better contrast on white background */
         #summary-grid {
             width: 100%;
             display: grid;
@@ -129,158 +155,107 @@
             gap: 16px;
         }
         .summary-item {
-            padding: 16px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            border-left: 4px solid;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--subtle-gray);
             overflow: hidden; 
         }
-        .summary-item p {
-            white-space: normal; 
-            overflow: visible; 
-            text-overflow: clip; 
-            margin: 0; 
-        }
-        .budget-item {
-            border-left-color: #4f46e5;
-            background-color: #f5f3ff; 
-        }
-        .expense-item {
-            grid-column: span 1;
-            border-left-color: #ef4444;
-            background-color: #fef2f2;
-        }
-        .remaining-green {
-            border-left-color: #10b981;
-            background-color: #f0fff4;
-        }
-        .remaining-red {
-            border-left-color: #ef4444;
-            background-color: #fef2f2;
-        }
-
-        /* Transaction Item Styling */
-        #history-list-container {
-            max-height: 300px;
-            overflow-y: auto;
-            padding-right: 8px;
-            margin-top: 16px;
-        }
-        .transaction-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            border-radius: 8px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-            margin-bottom: 8px;
-            background-color: #fffbeb;
-            border-right: 4px solid #f59e0b;
-        }
-        .transaction-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            min-width: 0;
-        }
-        .transaction-description-wrapper {
-            overflow: hidden;
-        }
-        .transaction-description-wrapper p {
-            white-space: nowrap; 
-            overflow: hidden;
-            text-overflow: ellipsis;
-            margin: 0;
-        }
-        .transaction-amount-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
-            margin-left: 8px;
-        }
-
-        .delete-btn {
-            background: none;
-            border: none;
-            color: #9ca3af;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 50%;
-            transition: color 0.2s;
-            flex-shrink: 0;
-        }
-        .delete-btn:hover {
-            color: #ef4444;
-        }
-
-        /* History Card Styles */
-        .history-record {
-            padding: 16px;
-            border-radius: 12px;
-            background-color: #ffffff;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            margin-bottom: 12px;
-            border-left: 6px solid #2563eb;
-        }
-        .history-record.overspent {
-            border-left: 6px solid #ef4444;
-        }
-        .history-title {
-            font-size: 1.125rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            color: #2563eb;
-        }
-        .history-title.overspent {
-            color: #ef4444;
-        }
-        .history-data {
-            display: flex;
-            justify-content: space-between;
+        .summary-item h2 {
             font-size: 0.875rem;
-            margin-bottom: 4px;
-        }
-        .history-label {
+            font-weight: 600;
             color: #6b7280;
         }
-        .history-value {
-            font-weight: 600;
-            color: #1f2937;
+        .summary-item p {
+            font-size: 1.6rem; /* Slightly larger font */
+            font-weight: 800;
+            margin-top: 4px;
         }
-        .summary-note {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-top: 12px;
-            padding-top: 8px;
-            border-top: 1px dashed #e5e7eb;
-        }
-        .summary-note.saved {
-            color: #10b981;
-        }
-        .summary-note.overspent-note {
-            color: #ef4444;
+        
+        /* Budget is Neutral/Structure */
+        .budget-item {
+            background-color: var(--subtle-gray); 
+            color: var(--dark-olive);
+            border-left: 4px solid var(--dark-olive);
         }
 
-        /* Desktop Layout (min-width: 640px) */
-        @media (min-width: 640px) {
-            body {
-                padding: 20px;
-            }
+        /* Remaining is Highlighted */
+        .remaining-green {
+            background-color: #e6ffe6; /* Very light green tint */
+            border-left: 4px solid var(--success-complement);
+            color: var(--success-complement);
+        }
+        .remaining-red {
+            background-color: var(--orange-tint);
+            border-left: 4px solid var(--primary-orange);
+            color: var(--primary-orange);
+        }
+        .remaining-red p, .remaining-green p {
+             font-size: 1.8rem; /* Make remaining balance stand out */
+        }
+
+
+        /* Expense is Warning/Action */
+        .expense-item {
+            background-color: var(--orange-tint); 
+            color: var(--dark-olive);
+            border-left: 4px solid var(--primary-orange);
+        }
+
+
+        /* Visualization */
+        #visualization-container {
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+        }
+
+
+        /* Transaction Item Styling (Inside the dark history card) */
+        .transaction-item {
+            /* ... (Keep existing styles for visibility on dark olive tint) ... */
+            background-color: var(--dark-olive); 
+            border-right: 4px solid var(--primary-orange);
+            color: var(--light-text);
+        }
+        .transaction-amount-actions span {
+             color: var(--primary-orange); 
+        }
+        .delete-btn {
+            color: var(--subtle-gray);
+        }
+        .delete-btn:hover {
+            color: var(--primary-orange);
+        }
+        
+        /* History Card Styles */
+        .history-record {
+            background-color: var(--dark-olive); /* Darker background for individual history records */
+            border-left: 6px solid var(--success-complement);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        .history-record.overspent {
+            border-left: 6px solid var(--primary-orange); 
+            background-color: #4A3C38; /* A slightly warmer dark tint for overspent */
+            color: var(--white-text);
+        }
+
+        /* Desktop Layout (min-width: 768px) */
+        @media (min-width: 768px) {
             #summary-section {
                 flex-direction: row; 
-                align-items: flex-start; 
-                gap: 24px;
+                align-items: stretch; /* Stretch items to match height */
             }
             #visualization-container {
-                width: 40%; 
-                max-width: 200px;
-                margin-bottom: 0;
+                width: 35%; /* Visualization takes smaller space */
+                max-width: 250px;
+                flex-shrink: 0;
             }
             #summary-grid {
-                width: 60%; 
+                width: 65%; /* Grid takes larger space */
                 grid-template-columns: 1fr 1fr;
             }
+            /* Make Total Expenses span across both columns for better flow */
             .expense-item {
                 grid-column: span 2;
             }
@@ -406,7 +381,7 @@
                 // Use a simple prompt replacement for alert
                 const container = document.getElementById('finalize-status');
                 if(container) {
-                    container.innerHTML = '<p style="color: #ef4444; font-weight: 600;">Error: Please set a budget or log an expense before finalizing.</p>';
+                    container.innerHTML = '<p style="color: var(--primary-orange); font-weight: 600;">Error: Please set a budget or log an expense before finalizing.</p>';
                     setTimeout(() => container.innerHTML = '', 3000);
                 }
                 return;
@@ -443,7 +418,7 @@
             // Simple notification
             const container = document.getElementById('finalize-status');
             if(container) {
-                 container.innerHTML = '<p style="color: #10b981; font-weight: 600;">Cycle Finalized! Set your new budget for the next date.</p>';
+                 container.innerHTML = '<p style="color: var(--success-complement); font-weight: 600;">Cycle Finalized! Set your new budget for the next date.</p>';
                  setTimeout(() => container.innerHTML = '', 4000);
             }
         };
@@ -452,17 +427,24 @@
         // --- UI Rendering ---
         
         /**
-         * Renders the SVG Donut Chart and its Legend.
+         * Renders the SVG Pie/Donut Chart and its Legend.
          */
         const renderBudgetVisualization = () => {
+            // --- Budget Not Set State ---
             if (budget <= 0) {
+                // Settings for a solid-looking placeholder
+                const radius = 40;
+                const strokeWidth = 20;
+
                 return `
                     <div style="display: flex; flex-direction: column; align-items: center; padding: 16px; width: 100%;">
-                        <svg viewBox="0 0 100 100" width="120" height="120">
-                            <circle cx="50" cy="50" r="45" fill="transparent" stroke="#e5e7eb" stroke-width="10"/>
-                            <text x="50" y="50" text-anchor="middle" dominant-baseline="middle" style="font-size: 7px; font-weight: bold; fill: #4b5563;">
-                                SET DAILY
-                            </text>
+                        <svg viewBox="0 0 100 100" width="120" height="120" style="transform: rotate(-90deg);">
+                            <circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="var(--subtle-gray)" stroke-width="${strokeWidth}"/>
+                            <g transform="rotate(90 50 50)">
+                                <text x="50" y="50" text-anchor="middle" dominant-baseline="middle" style="font-size: 7px; font-weight: bold; fill: #6b7280;">
+                                    SET DAILY
+                                </text>
+                            </g>
                         </svg>
                         <p style="margin-top: 16px; text-align: center; font-size: 0.875rem; font-weight: 600; color: #6b7280;">
                             Set your budget to start logging expenses.
@@ -471,30 +453,54 @@
                 `;
             }
 
+            // --- Budget Set State ---
             const isOver = expenses > budget;
-            const spentPercentage = budget > 0 ? Math.min(100, (expenses / budget) * 100) : 0;
-            
-            const radius = 45;
-            const strokeWidth = 10;
+            // The logic for spentPercentage remains the same, but we will ensure it doesn't go over 100 for the visual
+            const spentPercentage = budget > 0 ? (expenses / budget) * 100 : 0;
+            const normalizedSpent = Math.min(100, spentPercentage); // For stroke rendering, cap at 100%
+
+            // PIE CHART CONFIG: Smaller radius, larger stroke width to simulate a solid disk
+            const radius = 40; 
+            const strokeWidth = 20; 
+
             const circumference = 2 * Math.PI * radius;
-            const spentStroke = (spentPercentage / 100) * circumference;
-            const spentColorHex = isOver ? '#ef4444' : '#f59e0b';
+            const spentStroke = (normalizedSpent / 100) * circumference;
             
+            // Orange for spending/overspending accent
+            const spentColorHex = 'var(--primary-orange)'; 
+            // Green for remaining budget
+            const remainingColorHex = 'var(--success-complement)'; 
+
             const centerText = isOver ? 'OVER BUDGET' : `${Math.round(spentPercentage)}% SPENT`;
             const bottomText = isOver 
                 ? `${formatCurrency(Math.abs(balance))} Over` 
                 : `${formatCurrency(balance)} Remaining`;
             
-            const svgMarkup = `
-                <svg viewBox="0 0 100 100" width="120" height="120" style="transform: rotate(-90deg); flex-shrink: 0;">
-                    <circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="#e5e7eb" stroke-width="${strokeWidth}" />
-                    <circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="${spentColorHex}" stroke-width="${strokeWidth}"
-                            stroke-dasharray="${spentStroke} ${circumference}" stroke-dashoffset="0" stroke-linecap="round" />
+            const centerTextColor = isOver ? 'var(--primary-orange)' : 'var(--dark-olive)';
+            const bottomTextColor = isOver ? 'var(--primary-orange)' : 'var(--success-complement)';
 
+
+            const svgMarkup = `
+                <svg viewBox="0 0 100 100" width="100%" height="auto" style="max-height: 200px; transform: rotate(-90deg); flex-shrink: 0;">
+                    
+                    <!-- Base circle (Remaining) - Shows the unspent portion in green (if not over) or subtle gray (if over/fully spent) -->
+                    <circle cx="50" cy="50" r="${radius}" fill="transparent" 
+                            stroke="${isOver ? 'var(--subtle-gray)' : remainingColorHex}" 
+                            stroke-width="${strokeWidth}" />
+                    
+                    <!-- Spent circle - Always in orange, layered on top to show spent portion -->
+                    <circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="${spentColorHex}" stroke-width="${strokeWidth}"
+                            stroke-dasharray="${spentStroke} ${circumference}" stroke-dashoffset="0" stroke-linecap="butt" />
+
+                    <!-- Text is rotated back to horizontal for readability -->
                     <g transform="rotate(90 50 50)">
-                        <text x="50" y="50" text-anchor="middle" dominant-baseline="middle" 
-                              style="font-size: 7px; font-weight: bold; fill: ${isOver ? '#ef4444' : '#4b5563'};">
+                        <text x="50" y="48" text-anchor="middle" dominant-baseline="middle" 
+                              style="font-size: 7px; font-weight: bold; fill: ${centerTextColor};">
                             ${centerText}
+                        </text>
+                        <text x="50" y="58" text-anchor="middle" dominant-baseline="middle" 
+                              style="font-size: 6px; font-weight: 600; fill: #6b7280;">
+                            ${formatCurrency(expenses)} / ${formatCurrency(budget)}
                         </text>
                     </g>
                 </svg>
@@ -502,10 +508,8 @@
 
             return `
                 <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-                    <div style="display: flex; align-items: center; justify-content: center; width: 100%;">
-                        ${svgMarkup}
-                    </div>
-                    <p style="padding-top: 8px; text-align: center; font-size: 1rem; font-weight: 600; color: ${isOver ? '#ef4444' : '#10b981'};">
+                    ${svgMarkup}
+                    <p style="padding-top: 8px; text-align: center; font-size: 1rem; font-weight: 600; color: ${bottomTextColor};">
                         ${bottomText}
                     </p>
                 </div>
@@ -519,42 +523,43 @@
             calculateTotals(); 
             const isOverBudget = balance < 0;
 
-            const balanceColor = isOverBudget ? '#ef4444' : (balance > 0 ? '#10b981' : '#6b7280');
             const remainingCardClasses = isOverBudget ? 'remaining-red' : 'remaining-green';
 
             appContainer.innerHTML = `
                 <h1 class="app-header">
-                    <span style="font-size: 1.875rem; margin-right: 8px; color: #ef4444; font-weight: bold;">₱</span>
+                    <span style="font-size: 2rem; margin-right: 8px; font-weight: bold;">₱</span>
                     Daily Budget Tracker (PHP)
                 </h1>
                 
-                <section id="summary-section" class="card">
+                
+<section id="summary-section" class="card">
                     <div id="visualization-container">
                         ${renderBudgetVisualization()}
                     </div>
                     <div id="summary-grid">
-                        <div class="summary-item budget-item">
-                            <h2 style="font-size: 0.875rem; font-weight: 500; color: #6b7280;">Daily Budget (Starting)</h2>
-                            <p style="font-size: 1.5rem; font-weight: bold; color: #4f46e5;" id="total-budget-display">
-                                ${formatCurrency(budget)}
-                            </p>
-                        </div>
                         <div class="summary-item ${remainingCardClasses}">
-                            <h2 style="font-size: 0.875rem; font-weight: 500; color: #6b7280;">Current Remaining Balance</h2>
-                            <p style="font-size: 1.5rem; font-weight: bold; color: ${balanceColor};" id="remaining-budget-display">
+                            <h2>Current Remaining Balance</h2>
+                            <p id="remaining-budget-display">
                                 ${formatCurrency(balance)}
                             </p>
                         </div>
+                        <div class="summary-item budget-item">
+                            <h2>Daily Budget (Starting)</h2>
+                            <p id="total-budget-display">
+                                ${formatCurrency(budget)}
+                            </p>
+                        </div>
                         <div class="summary-item expense-item">
-                            <h2 style="font-size: 0.875rem; font-weight: 500; color: #6b7280;">Total Expenses for Current Cycle</h2>
-                            <p style="font-size: 1.5rem; font-weight: bold; color: #ef4444;" id="total-expenses-display">
+                            <h2>Total Expenses for Current Cycle</h2>
+                            <p id="total-expenses-display">
                                 ${formatCurrency(expenses)}
                             </p>
                         </div>
                     </div>
                 </section>
 
-                <div id="tab-bar">
+                
+<div id="tab-bar">
                     <button id="tab-current-btn" class="tab-btn ${currentView === 'current' ? 'active' : ''}">
                         Active Cycle (${currentExpenses.length} Entries)
                     </button>
@@ -563,8 +568,10 @@
                     </button>
                 </div>
 
-                <div id="view-content-container">
-                    </div>
+                
+<div id="view-content-container">
+                    
+</div>
             `;
 
             // --- 2. Attach Dynamic Renderers/Listeners ---
@@ -655,38 +662,28 @@
             });
             
             return `
-                <section class="card" style="background-color: #e0f2fe; border-left: 6px solid #2563eb;">
-                    <h2 style="font-size: 1.25rem; font-weight: 700; color: #1e3a8a; margin-bottom: 16px;">
-                        Active Budget Cycle Date: <span style="color: #2563eb;">${displayDate}</span>
-                    </h2>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <input type="date" id="cycle-date-input" value="${currentCycleDate}" max="${today}" style="flex-grow: 1;" required />
-                        <button id="set-cycle-date-btn" class="btn btn-finalize" style="padding: 12px 16px; flex-shrink: 0;">
-                            Set Date
-                        </button>
-                    </div>
-                    <p style="margin-top: 10px; font-size: 0.85rem; color: #1e3a8a;">
-                        All expenses logged and finalization will be attributed to the date above.
-                    </p>
-                </section>
-
-                <section class="card" style="background-color: #fef2f2; border-left: 6px solid #ef4444;">
-                    <h2 style="font-size: 1.25rem; font-weight: 700; color: #991b1b; margin-bottom: 16px;">
-                        Finalize Cycle for ${displayDate}
-                    </h2>
-                    <p style="font-size: 0.9rem; color: #991b1b; margin-bottom: 12px;">
-                        Click below to archive this date's data and automatically move to the next day.
-                    </p>
-                    <button id="finalize-day-btn" class="btn btn-primary" style="width: 100%;">
-                        Finalize and Archive Cycle
-                    </button>
-                    <div id="finalize-status" style="margin-top: 10px; text-align: center;"></div>
-                </section>
                 
-                <section id="budget-setter-section" class="card"></section>
+<div style="display: grid; grid-template-columns: 1fr; gap: 24px;">
+                    <section class="card" id="date-setter-card">
+                        <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px;">
+                            Active Budget Cycle Date: <span style="font-size: 1.25rem; font-weight: 800; color: var(--primary-orange);">${displayDate}</span>
+                        </h2>
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <input type="date" id="cycle-date-input" value="${currentCycleDate}" max="${today}" style="flex-grow: 1;" required />
+                            <button id="set-cycle-date-btn" class="btn btn-success" style="padding: 12px 16px; flex-shrink: 0;">
+                                Set Date
+                            </button>
+                        </div>
+                        <p style="margin-top: 10px; font-size: 0.85rem; color: #6b7280;">
+                            All expenses logged and finalization will be attributed to the date above.
+                        </p>
+                    </section>
 
-                <section class="card">
-                    <h2 style="font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">Log Expense</h2>
+                    <section id="budget-setter-card" class="card"></section>
+                </div>
+                
+                <section class="card" id="add-expense-card">
+                    <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--subtle-gray); padding-bottom: 8px;">Log New Expense</h2>
                     <form id="add-expense-form" style="display: flex; flex-direction: column; gap: 16px;">
                         <input type="text" id="expense-description-input" placeholder="Expense Description (e.g., Lunch, Bus Fare)" required />
                         <input type="number" id="expense-amount-input" placeholder="Amount (e.g., 150.75)"
@@ -695,14 +692,28 @@
                         <button type="submit" class="btn btn-primary" ${budget === 0 ? 'disabled' : ''} title="${budget === 0 ? 'Set a budget first!' : 'Log Expense'}">
                             Log Expense for ${new Date(currentCycleDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </button>
-                        ${budget === 0 ? '<p style="color:#ef4444; text-align:center; font-weight:600;">⚠️ Please set your initial budget above before logging expenses.</p>' : ''}
+                        ${budget === 0 ? '<p style="color:var(--primary-orange); text-align:center; font-weight:600;">⚠️ Please set your initial budget above before logging expenses.</p>' : ''}
                     </form>
                 </section>
 
-                <section class="card">
-                    <h2 style="font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">Expense Log for ${displayDate}</h2>
+                <section class="card" id="expense-history-card">
+                    <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--white-text); margin-bottom: 16px; border-bottom: 1px solid var(--subtle-gray); padding-bottom: 8px;">Expense Log for ${displayDate}</h2>
                     <div id="history-list-container">
-                        </div>
+                        
+</div>
+                </section>
+
+                <section class="card" id="finalize-card" style="background-color: var(--primary-orange);">
+                    <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--white-text); margin-bottom: 16px;">
+                        Finalize Cycle for ${displayDate}
+                    </h2>
+                    <p style="font-size: 0.9rem; color: #fff; margin-bottom: 12px;">
+                        Click below to archive this date's data and automatically move to the next day. This action cannot be undone.
+                    </p>
+                    <button id="finalize-day-btn" class="btn" style="width: 100%; background-color: var(--dark-olive); color: var(--primary-orange);">
+                        Finalize and Archive Cycle
+                    </button>
+                    <div id="finalize-status" style="margin-top: 10px; text-align: center;"></div>
                 </section>
             `;
         };
@@ -711,31 +722,31 @@
          * Renders the budget setting UI dynamically.
          */
         const renderBudgetSetter = (isEditing = false) => {
-            const container = document.getElementById('budget-setter-section');
+            const container = document.getElementById('budget-setter-card');
             if (!container) return;
             
             const currentBudgetDisplay = formatCurrency(budget);
 
             if (isEditing) {
                 container.innerHTML = `
-                    <h2 style="font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">
-                        Set Budget Amount
+                    <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--subtle-gray); padding-bottom: 8px;">
+                        Set/Update Budget Amount
                     </h2>
                     <div style="display: flex; gap: 8px;">
                         <input type="number" id="new-budget-input" placeholder="Enter New Budget Amount" value="${budget.toString()}"
                             min="0" step="0.01" style="flex-grow: 1;" required />
                         <button id="save-budget-btn" class="btn btn-success" style="padding: 12px 16px; flex-shrink: 0;">
-                            Save
+                            Save Budget
                         </button>
                     </div>
                 `;
                 document.getElementById('save-budget-btn').addEventListener('click', saveBudget);
             } else {
                 container.innerHTML = `
-                    <h2 style="font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">
-                        Current Daily Budget: ${currentBudgetDisplay}
+                    <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--subtle-gray); padding-bottom: 8px;">
+                        Current Daily Budget: <span style="color: var(--success-complement); font-weight: 700;">${currentBudgetDisplay}</span>
                     </h2>
-                    <button id="change-budget-btn" class="btn" style="width: 100%; background-color: #e5e7eb; color: #1f2937;">
+                    <button id="change-budget-btn" class="btn" style="width: 100%; background-color: var(--subtle-gray); color: var(--dark-olive);">
                         Change Budget
                     </button>
                 `;
@@ -768,7 +779,7 @@
             if (!container) return;
 
             if (currentExpenses.length === 0) {
-                container.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 32px;">No expenses logged for this cycle date.</div>';
+                container.innerHTML = '<div style="text-align: center; color: var(--light-text); padding: 32px;">No expenses logged for this cycle date.</div>';
                 return;
             }
 
@@ -781,14 +792,14 @@
                 return `
                     <div class="transaction-item">
                         <div class="transaction-info">
-                            <div style="width: 16px; height: 16px; border-radius: 50%; background-color: #f59e0b; flex-shrink: 0;"></div>
+                            <div style="width: 16px; height: 16px; border-radius: 50%; background-color: var(--primary-orange); flex-shrink: 0;"></div>
                             <div class="transaction-description-wrapper">
-                                <p style="font-weight: 500; color: #1f2937;">${t.description}</p>
-                                <p style="font-size: 0.75rem; color: #6b7280; font-weight: 700;">Logged: ${displayTime}</p>
+                                <p>${t.description}</p>
+                                <p>${displayTime}</p>
                             </div>
                         </div>
                         <div class="transaction-amount-actions">
-                            <span style="font-weight: 600; color: #ef4444; white-space: nowrap;">
+                            <span style="font-weight: 600; white-space: nowrap;">
                                 - ${formatCurrency(t.amount)}
                             </span>
                             <button data-id="${t.id}" class="delete-btn" aria-label="Delete expense">
@@ -860,9 +871,9 @@
         const renderDailyHistory = () => {
             if (dailyRecords.length === 0) {
                 return `
-                    <section class="card">
-                        <h2 style="font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">Daily History Archive</h2>
-                        <div style="text-align: center; color: #6b7280; padding: 32px;">
+                    <section class="card" id="history-archive-card">
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--white-text); margin-bottom: 16px; border-bottom: 1px solid var(--subtle-gray); padding-bottom: 8px;">Daily History Archive</h2>
+                        <div style="text-align: center; color: var(--light-text); padding: 32px;">
                             No daily cycles have been finalized yet.
                         </div>
                     </section>
@@ -908,19 +919,21 @@
                         </div>
                         <div class="history-data">
                             <span class="history-label">Total Expenses:</span>
-                            <span class="history-value" style="color: #ef4444;">- ${formatCurrency(record.totalExpenses)}</span>
+                            <span class="history-value" style="color: var(--primary-orange);">- ${formatCurrency(record.totalExpenses)}</span>
                         </div>
                         <div class="history-data">
                             <span class="history-label" style="font-weight: 700;">Final Balance:</span>
-                            <span class="history-value" style="font-weight: 700; color: ${isOverspent ? '#ef4444' : '#10b981'};">
+                            <span class="history-value" style="font-weight: 700; color: ${isOverspent ? 'var(--primary-orange)' : 'var(--success-complement)'};">
                                 ${formatCurrency(record.endingBalance)}
                             </span>
                         </div>
                         
-                        <div class="summary-note ${summaryNoteClass}">
+                        
+<div class="summary-note ${summaryNoteClass}">
                             ${summaryNoteText}
                         </div>
-                        <p style="text-align: right; margin-top: 8px; font-size: 0.75rem; color: #6b7280;">
+                        
+<p style="text-align: right; margin-top: 8px; font-size: 0.75rem; color: #9ca3af;">
                             ${record.transactions.length} transactions logged.
                         </p>
                     </div>
@@ -928,8 +941,8 @@
             }).join('');
 
             return `
-                <section class="card">
-                    <h2 style="font-size: 1.25rem; font-weight: 600; color: #1f2937; margin-bottom: 16px; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px;">Daily History Archive</h2>
+                <section class="card" id="history-archive-card">
+                    <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--white-text); margin-bottom: 16px; border-bottom: 1px solid var(--subtle-gray); padding-bottom: 8px;">Daily History Archive</h2>
                     <div id="daily-history-list" style="max-height: 60vh; overflow-y: auto; padding-right: 5px;">
                         ${historyListMarkup}
                     </div>
