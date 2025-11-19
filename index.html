@@ -3,23 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vanilla JS Dynamic Budget Tracker</title>
+    <title>Dashboard Budget Tracker (PHP)</title>
     
     <style>
         /* --- Color Palette Variables --- */
         :root {
             --primary-orange: #FBA002; /* Bright Orange Accent */
-            --dark-olive: #313B2F; /* Deep Background */
+            --dark-olive: #42533e; /* Deep Background */
+            --dark-background: #252A23; /* Even darker background for cards/dashboard sections */
             --hover-orange: #e59002;
             --subtle-gray: #e5e7eb; /* Light Gray for borders/dividers */
-            --success-complement: #6a7e2b; /* Sage Green for positive balance */
+            --success-complement: #20d120; /* Sage Green for positive balance */
             
             /* Tints and Text on Dark Background */
             --olive-tint: #4A5649; /* Secondary Dark Container background */
+            --light-olive-tint: #5C675B; /* Tertiary Dark background for inputs/buttons */
             --orange-tint: #FFF3E0; /* Lighter orange tint */
             --white-text: #ffffff; 
             --light-text: #e0e0e0; 
-            --box-shadow: 0 8px 15px rgba(0, 0, 0, 0.4); /* Stronger shadow for dark background */
+            --box-shadow: 0 6px 12px rgba(0, 0, 0, 0.5); /* Stronger shadow for dark background */
         }
 
         /* Reset and General Setup */
@@ -35,19 +37,19 @@
             padding: 20px 10px;
         }
         #app-container {
-            max-width: 900px; /* Increased max width */
+            max-width: 1200px; /* Wider for dashboard feel */
             margin: 0 auto;
         }
 
-        /* Card Styling */
+        /* --- Global Card Styling (Dark Theme) --- */
         .card {
-            background-color: var(--white-text); /* Default card background is white for focus */
+            background-color: var(--dark-background); 
             padding: 24px;
-            border-radius: 12px;
+            border-radius: 16px; /* Smoother corners */
             box-shadow: var(--box-shadow);
             margin-bottom: 24px;
+            color: var(--light-text); 
             transition: background-color 0.3s;
-            color: var(--dark-olive); /* Default text color for white cards */
         }
         .app-header {
             font-size: 2rem; 
@@ -61,45 +63,27 @@
             color: var(--primary-orange) !important; 
         }
 
-        /* --- Specific Card Overrides --- */
-        
-        /* Summary section needs to be distinctly visible, keep it white */
+        /* --- Summary Section (Always visible, clean background) --- */
         #summary-section {
-            background-color: #ffffff; 
-            display: flex; /* Setup for desktop layout */
-            flex-direction: column; /* Default stack on mobile */
+            background-color: var(--dark-background); 
+            display: flex; 
+            flex-direction: column; 
             gap: 24px;
-        }
-
-        /* Date Setter, Budget Setter, Finalize (Actions/Settings) - White background for focus */
-        #date-setter-card, #budget-setter-card, #finalize-card, #add-expense-card {
-            background-color: var(--white-text); 
-            color: var(--dark-olive); 
-        }
-
-        /* Expense History and Daily Archive (Logs/Records) - Olive Tint background */
-        #expense-history-card, #history-archive-card {
-            background-color: var(--olive-tint); 
-            color: var(--white-text);
-            border-left: 6px solid var(--primary-orange);
-        }
-        #expense-history-card h2, #history-archive-card h2 {
-            color: var(--white-text);
+            padding: 24px;
         }
 
         /* Tabs Styling */
         #tab-bar {
             display: flex;
             margin-bottom: 24px;
-            border-radius: 8px;
+            border-radius: 12px;
             overflow: hidden;
-            background-color: var(--olive-tint); 
+            background-color: var(--dark-background); 
             box-shadow: var(--box-shadow);
         }
         .tab-btn {
-            /* ... (keep existing tab styles) ... */
             flex-grow: 1;
-            padding: 12px 0;
+            padding: 14px 0;
             text-align: center;
             font-weight: 600;
             cursor: pointer;
@@ -110,27 +94,28 @@
         }
         .tab-btn.active {
             background-color: var(--primary-orange); 
-            color: var(--white-text); 
+            color: var(--dark-olive); /* Dark text on orange */
         }
         .tab-btn:hover:not(.active) {
-            background-color: rgba(255, 255, 255, 0.1); 
+            background-color: var(--olive-tint); 
             color: var(--white-text);
         }
 
-
-        /* Inputs and Buttons */
+        /* Inputs and Buttons - Designed for dark background */
         input[type="text"], input[type="number"], input[type="date"] {
-            /* ... (keep existing input styles) ... */
             width: 100%;
             padding: 12px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--olive-tint);
             border-radius: 8px;
             transition: border-color 0.2s;
-            background-color: #ffffff; 
-            color: var(--dark-olive); 
+            background-color: var(--light-olive-tint); /* Lighter dark background for input field */
+            color: var(--white-text); 
+        }
+        input::placeholder {
+            color: var(--light-text);
+            opacity: 0.6;
         }
         .btn {
-            /* ... (keep existing button styles) ... */
             padding: 12px;
             border-radius: 8px;
             font-weight: 700;
@@ -140,69 +125,67 @@
         }
         .btn-success {
             background-color: var(--success-complement);
-            color: white;
+            color: var(--white-text);
         }
         .btn-success:hover {
             background-color: #5c6c24; 
         }
-
-
-        /* Summary Grid Items - Refined for better contrast on white background */
+        .btn-primary {
+            background-color: var(--primary-orange);
+            color: var(--dark-olive);
+        }
+        .btn-primary:hover:not([disabled]) {
+            background-color: var(--hover-orange);
+        }
+        .btn-primary[disabled] {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        
+        /* Summary Grid Items - Adapted for dark card background */
         #summary-grid {
             width: 100%;
             display: grid;
-            grid-template-columns: 1fr;
+            grid-template-columns: repeat(3, 1fr); /* Three columns for summary */
             gap: 16px;
         }
         .summary-item {
-            padding: 20px;
+            padding: 16px;
             border-radius: 10px;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-            border: 1px solid var(--subtle-gray);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--olive-tint);
             overflow: hidden; 
         }
         .summary-item h2 {
-            font-size: 0.875rem;
+            font-size: 0.8rem;
             font-weight: 600;
-            color: #6b7280;
+            color: var(--light-text);
+            opacity: 0.7;
+            margin-bottom: 4px;
         }
         .summary-item p {
-            font-size: 1.6rem; /* Slightly larger font */
+            font-size: 1.4rem; 
             font-weight: 800;
-            margin-top: 4px;
+            margin-top: 0;
         }
         
-        /* Budget is Neutral/Structure */
+        /* Color Coding for Summary */
         .budget-item {
-            background-color: var(--subtle-gray); 
-            color: var(--dark-olive);
-            border-left: 4px solid var(--dark-olive);
+            color: var(--white-text);
         }
-
-        /* Remaining is Highlighted */
         .remaining-green {
-            background-color: #e6ffe6; /* Very light green tint */
-            border-left: 4px solid var(--success-complement);
             color: var(--success-complement);
+            border-left: 4px solid var(--success-complement);
         }
         .remaining-red {
-            background-color: var(--orange-tint);
-            border-left: 4px solid var(--primary-orange);
             color: var(--primary-orange);
-        }
-        .remaining-red p, .remaining-green p {
-             font-size: 1.8rem; /* Make remaining balance stand out */
-        }
-
-
-        /* Expense is Warning/Action */
-        .expense-item {
-            background-color: var(--orange-tint); 
-            color: var(--dark-olive);
             border-left: 4px solid var(--primary-orange);
         }
-
-
+        .expense-item {
+            color: var(--primary-orange);
+            border-left: 4px solid var(--primary-orange);
+        }
+        
         /* Visualization */
         #visualization-container {
             display: flex; 
@@ -210,54 +193,104 @@
             align-items: center;
         }
 
+        /* --- Dashboard Grid Structure for Current View --- */
+        #current-dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr; /* Default to single column for mobile */
+            gap: 24px;
+        }
 
-        /* Transaction Item Styling (Inside the dark history card) */
+        /* Transaction Item Styling (Dark Background) */
         .transaction-item {
-            /* ... (Keep existing styles for visibility on dark olive tint) ... */
-            background-color: var(--dark-olive); 
-            border-right: 4px solid var(--primary-orange);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            background-color: var(--olive-tint); 
+            border-left: 4px solid var(--light-olive-tint);
+            border-radius: 8px;
             color: var(--light-text);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        }
+        .transaction-item-details strong {
+            display: block;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .transaction-item-details small {
+            color: var(--subtle-gray);
         }
         .transaction-amount-actions span {
+             font-weight: 700;
              color: var(--primary-orange); 
+             flex-shrink: 0;
         }
         .delete-btn {
             color: var(--subtle-gray);
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 4px;
+            background: none;
+            border: none;
         }
         .delete-btn:hover {
             color: var(--primary-orange);
         }
         
-        /* History Card Styles */
+        /* History Card Styles - Individual day records */
         .history-record {
-            background-color: var(--dark-olive); /* Darker background for individual history records */
+            padding: 16px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            background-color: var(--olive-tint); 
             border-left: 6px solid var(--success-complement);
             box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+            cursor: pointer; 
         }
         .history-record.overspent {
             border-left: 6px solid var(--primary-orange); 
-            background-color: #4A3C38; /* A slightly warmer dark tint for overspent */
-            color: var(--white-text);
         }
-
-        /* Desktop Layout (min-width: 768px) */
-        @media (min-width: 768px) {
+        
+        /* Desktop Layout (Dashboard View) */
+        @media (min-width: 900px) {
             #summary-section {
                 flex-direction: row; 
-                align-items: stretch; /* Stretch items to match height */
             }
             #visualization-container {
-                width: 35%; /* Visualization takes smaller space */
+                width: 33%; 
                 max-width: 250px;
                 flex-shrink: 0;
             }
             #summary-grid {
-                width: 65%; /* Grid takes larger space */
-                grid-template-columns: 1fr 1fr;
+                width: 67%; 
+                grid-template-columns: 1fr 1fr 1fr;
             }
-            /* Make Total Expenses span across both columns for better flow */
-            .expense-item {
-                grid-column: span 2;
+
+            /* Dashboard Layout */
+            #current-dashboard-grid {
+                grid-template-columns: 2fr 1fr; /* Main content (forms/log) on left, actions on right */
+            }
+
+            /* Action/Settings Column */
+            #dashboard-actions-column {
+                grid-column: 2 / 3;
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
+            
+            /* Main Content Column */
+            #dashboard-main-column {
+                grid-column: 1 / 2;
+                display: flex;
+                flex-direction: column;
+                gap: 24px;
+            }
+
+            /* History Archive Card (full width if history tab selected) */
+            #history-archive-card {
+                width: 100%;
             }
         }
     </style>
@@ -265,27 +298,24 @@
 <body>
     <div id="app-container">
         <div id="loading-indicator" style="display: flex; justify-content: center; align-items: center; min-height: 50vh;">
-            <div style="font-size: 1.25rem; font-weight: 600; color: #4b5563;">Loading Application...</div>
+            <div style="font-size: 1.25rem; font-weight: 600; color: var(--light-text);">Loading Application...</div>
         </div>
     </div>
 
     <script>
         // --- Configuration Keys ---
         const BUDGET_KEY = 'budgetApp_daily_budget';
-        const CURRENT_EXPENSES_KEY = 'budgetApp_current_expenses'; // Unified key for current day's log
-        const DAILY_RECORDS_KEY = 'budgetApp_daily_history'; // New key for finalized days
-        const CURRENT_CYCLE_DATE_KEY = 'budgetApp_current_cycle_date'; // Key for the user-selected cycle date
+        const CURRENT_EXPENSES_KEY = 'budgetApp_current_expenses';
+        const DAILY_RECORDS_KEY = 'budgetApp_daily_history';
+        const CURRENT_CYCLE_DATE_KEY = 'budgetApp_current_cycle_date'; 
 
         // --- Global State Variables ---
         let budget = 0;
         let currentExpenses = [];
-        let dailyRecords = []; // Stores finalized daily summaries
-        let expenses = 0; // Total expense for the current cycle
-        let balance = 0; // Remaining (Budget - Total)
-        let currentView = 'current'; // 'current' or 'history'
-        
-        // The date for which the current expenses are being logged
-        // This is stored in ISO format (YYYY-MM-DD) for input[type="date"]
+        let dailyRecords = []; 
+        let expenses = 0; 
+        let balance = 0; 
+        let currentView = 'current'; 
         let currentCycleDate = new Date().toISOString().split('T')[0]; 
 
         // --- DOM Elements ---
@@ -295,15 +325,14 @@
 
         /**
          * Formats a number as Philippine Peso (PHP) currency.
-         * @param {number} amount 
-         * @returns {string} Formatted currency string.
          */
         const formatCurrency = (amount) => {
+            const absoluteAmount = Math.abs(amount);
             return new Intl.NumberFormat('fil-PH', {
                 style: 'currency',
                 currency: 'PHP',
                 minimumFractionDigits: 2
-            }).format(amount);
+            }).format(absoluteAmount);
         };
         
         /**
@@ -312,35 +341,31 @@
         const generateId = () => Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
 
         /**
-         * Loads data from localStorage.
+         * Loads data from localStorage. (Simplified for brevity, assuming existing logic is fine)
          */
         const loadData = () => {
-            budget = parseFloat(localStorage.getItem(BUDGET_KEY) || 0);
-            
-            // Load current cycle date
-            currentCycleDate = localStorage.getItem(CURRENT_CYCLE_DATE_KEY) || new Date().toISOString().split('T')[0];
-
-            const loadArray = (key) => {
-                try {
-                    const rawData = JSON.parse(localStorage.getItem(key) || '[]');
-                    return rawData.map(t => ({
-                        ...t,
-                        // Ensure amount is float and date is present
-                        amount: parseFloat(t.amount),
-                        date: t.date || currentCycleDate,
-                        // Ensure optional properties for history are handled
-                        startingBudget: t.startingBudget !== undefined ? parseFloat(t.startingBudget) : undefined,
-                        endingBalance: t.endingBalance !== undefined ? parseFloat(t.endingBalance) : undefined,
-                        totalExpenses: t.totalExpenses !== undefined ? parseFloat(t.totalExpenses) : undefined,
-                    }));
-                } catch (e) {
-                    console.error(`Error loading data for key ${key}:`, e);
-                    return [];
-                }
-            };
-            
-            currentExpenses = loadArray(CURRENT_EXPENSES_KEY);
-            dailyRecords = loadArray(DAILY_RECORDS_KEY);
+             budget = parseFloat(localStorage.getItem(BUDGET_KEY) || 0);
+             currentCycleDate = localStorage.getItem(CURRENT_CYCLE_DATE_KEY) || new Date().toISOString().split('T')[0];
+             
+             const loadArray = (key) => {
+                 try {
+                     const rawData = JSON.parse(localStorage.getItem(key) || '[]');
+                     return rawData.map(t => ({
+                         ...t,
+                         amount: parseFloat(t.amount),
+                         startingBudget: t.startingBudget !== undefined ? parseFloat(t.startingBudget) : undefined,
+                         endingBalance: t.endingBalance !== undefined ? parseFloat(t.endingBalance) : undefined,
+                         totalExpenses: t.totalExpenses !== undefined ? parseFloat(t.totalExpenses) : undefined,
+                         createdAt: t.createdAt || new Date().toISOString()
+                     }));
+                 } catch (e) {
+                     console.error(`Error loading data for key ${key}:`, e);
+                     return [];
+                 }
+             };
+             
+             currentExpenses = loadArray(CURRENT_EXPENSES_KEY);
+             dailyRecords = loadArray(DAILY_RECORDS_KEY);
         };
 
         /**
@@ -348,15 +373,11 @@
          */
         const saveData = () => {
             localStorage.setItem(BUDGET_KEY, budget.toString());
-            
-            // Save current cycle date
             localStorage.setItem(CURRENT_CYCLE_DATE_KEY, currentCycleDate);
 
-            // Current expenses: sorted by creation date (newest first)
             const sortedCurrent = currentExpenses.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
             localStorage.setItem(CURRENT_EXPENSES_KEY, JSON.stringify(sortedCurrent));
             
-            // Daily records: sorted by date (newest first for log viewing)
             const sortedRecords = dailyRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
             localStorage.setItem(DAILY_RECORDS_KEY, JSON.stringify(sortedRecords));
         };
@@ -369,56 +390,99 @@
             balance = budget - expenses;
             return { expenses, balance };
         };
+        
+        const saveBudget = () => {
+            const input = document.getElementById('new-budget-input');
+            const newBudget = parseFloat(input.value);
 
-        // --- Core Logic ---
+            if (isNaN(newBudget) || newBudget < 0) {
+                alert("Please enter a valid non-negative number for the budget.");
+                return;
+            }
 
-        /**
-         * Finalizes the current day's cycle, archives the data, and resets the budget.
-         */
+            budget = newBudget;
+            renderApp();
+        };
+
+        const addExpense = (event) => {
+            event.preventDefault();
+            
+            const descriptionInput = document.getElementById('expense-description-input');
+            const amountInput = document.getElementById('expense-amount-input');
+
+            const description = descriptionInput.value.trim();
+            const amount = parseFloat(amountInput.value);
+
+            if (!description || isNaN(amount) || amount <= 0) {
+                alert("Please enter a valid description and a positive amount.");
+                return;
+            }
+
+            const newExpense = {
+                id: generateId(),
+                description: description,
+                amount: amount,
+                date: currentCycleDate,
+                createdAt: new Date().toISOString()
+            };
+
+            currentExpenses.unshift(newExpense);
+            
+            descriptionInput.value = '';
+            amountInput.value = '';
+
+            renderApp();
+        };
+        
+        const deleteExpense = (id) => {
+            if (!confirm("Are you sure you want to delete this expense?")) {
+                return;
+            }
+            currentExpenses = currentExpenses.filter(t => t.id !== id);
+            renderApp();
+        };
+
         const finalizeDay = () => {
+            // Logic remains the same (archiving and advancing date)
             if (budget === 0 && currentExpenses.length === 0) {
-                console.log("No budget or expenses to finalize.");
-                // Use a simple prompt replacement for alert
                 const container = document.getElementById('finalize-status');
                 if(container) {
-                    container.innerHTML = '<p style="color: var(--primary-orange); font-weight: 600;">Error: Please set a budget or log an expense before finalizing.</p>';
+                    container.innerHTML = '<p style="color: var(--primary-orange); font-weight: 600;">Error: Please set a budget or log an expense.</p>';
                     setTimeout(() => container.innerHTML = '', 3000);
                 }
+                return;
+            }
+            
+            if (!confirm(`Finalize cycle for ${new Date(currentCycleDate).toLocaleDateString()}? This archives all current data.`)) {
                 return;
             }
 
             const { expenses: finalExpenses, balance: finalBalance } = calculateTotals();
 
-            // 1. Create the historical record using the currently set cycle date
             const newRecord = {
                 id: generateId(),
-                date: currentCycleDate, // Use the dynamic cycle date (YYYY-MM-DD)
+                date: currentCycleDate,
                 startingBudget: budget,
                 endingBalance: finalBalance,
                 totalExpenses: finalExpenses,
-                transactions: [...currentExpenses] // Save a snapshot of all transactions
+                transactions: [...currentExpenses]
             };
 
-            // 2. Archive the record
             dailyRecords.unshift(newRecord); 
 
-            // 3. Reset state for the next day
             budget = 0;
             currentExpenses = [];
             
-            // Advance the date to the next day automatically for convenience
             const nextDay = new Date(currentCycleDate);
             nextDay.setDate(nextDay.getDate() + 1);
             currentCycleDate = nextDay.toISOString().split('T')[0];
             
-            // 4. Update UI and storage
             renderApp();
-            renderBudgetSetter(true); // Automatically open the budget setter for the new day
+            renderBudgetSetter(true);
             
-            // Simple notification
             const container = document.getElementById('finalize-status');
             if(container) {
-                 container.innerHTML = '<p style="color: var(--success-complement); font-weight: 600;">Cycle Finalized! Set your new budget for the next date.</p>';
+                 container.innerHTML = '<p style="color: var(--success-complement); font-weight: 600;">✅ Cycle Finalized! Set your new budget.</p>';
                  setTimeout(() => container.innerHTML = '', 4000);
             }
         };
@@ -427,79 +491,73 @@
         // --- UI Rendering ---
         
         /**
-         * Renders the SVG Pie/Donut Chart and its Legend.
+         * Renders the SVG Pie/Donut Chart. (No change needed from last version)
          */
         const renderBudgetVisualization = () => {
-            // --- Budget Not Set State ---
+            // ... (Visualization logic from the previous answer)
             if (budget <= 0) {
-                // Settings for a solid-looking placeholder
                 const radius = 40;
                 const strokeWidth = 20;
 
                 return `
                     <div style="display: flex; flex-direction: column; align-items: center; padding: 16px; width: 100%;">
                         <svg viewBox="0 0 100 100" width="120" height="120" style="transform: rotate(-90deg);">
-                            <circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="var(--subtle-gray)" stroke-width="${strokeWidth}"/>
+                            <circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="var(--olive-tint)" stroke-width="${strokeWidth}"/>
                             <g transform="rotate(90 50 50)">
-                                <text x="50" y="50" text-anchor="middle" dominant-baseline="middle" style="font-size: 7px; font-weight: bold; fill: #6b7280;">
-                                    SET DAILY
+                                <text x="50" y="45" text-anchor="middle" dominant-baseline="middle" style="font-size: 7px; font-weight: bold; fill: var(--light-text); opacity: 0.6;">
+                                    ₱0.00
+                                </text>
+                                <text x="50" y="55" text-anchor="middle" dominant-baseline="middle" style="font-size: 5px; font-weight: 600; fill: var(--light-text); opacity: 0.6;">
+                                    BUDGET
                                 </text>
                             </g>
                         </svg>
-                        <p style="margin-top: 16px; text-align: center; font-size: 0.875rem; font-weight: 600; color: #6b7280;">
-                            Set your budget to start logging expenses.
+                        <p style="margin-top: 16px; text-align: center; font-size: 0.875rem; font-weight: 600; color: var(--light-text); opacity: 0.7;">
+                            Set your budget to start tracking.
                         </p>
                     </div>
                 `;
             }
 
-            // --- Budget Set State ---
             const isOver = expenses > budget;
-            // The logic for spentPercentage remains the same, but we will ensure it doesn't go over 100 for the visual
             const spentPercentage = budget > 0 ? (expenses / budget) * 100 : 0;
-            const normalizedSpent = Math.min(100, spentPercentage); // For stroke rendering, cap at 100%
+            const normalizedSpent = Math.min(100, spentPercentage); 
 
-            // PIE CHART CONFIG: Smaller radius, larger stroke width to simulate a solid disk
             const radius = 40; 
             const strokeWidth = 20; 
 
             const circumference = 2 * Math.PI * radius;
             const spentStroke = (normalizedSpent / 100) * circumference;
             
-            // Orange for spending/overspending accent
             const spentColorHex = 'var(--primary-orange)'; 
-            // Green for remaining budget
             const remainingColorHex = 'var(--success-complement)'; 
 
             const centerText = isOver ? 'OVER BUDGET' : `${Math.round(spentPercentage)}% SPENT`;
             const bottomText = isOver 
-                ? `${formatCurrency(Math.abs(balance))} Over` 
+                ? `- ${formatCurrency(balance)} Over` 
                 : `${formatCurrency(balance)} Remaining`;
             
-            const centerTextColor = isOver ? 'var(--primary-orange)' : 'var(--dark-olive)';
+            const centerTextColor = isOver ? 'var(--primary-orange)' : 'var(--light-text)';
             const bottomTextColor = isOver ? 'var(--primary-orange)' : 'var(--success-complement)';
 
 
             const svgMarkup = `
                 <svg viewBox="0 0 100 100" width="100%" height="auto" style="max-height: 200px; transform: rotate(-90deg); flex-shrink: 0;">
                     
-                    <!-- Base circle (Remaining) - Shows the unspent portion in green (if not over) or subtle gray (if over/fully spent) -->
                     <circle cx="50" cy="50" r="${radius}" fill="transparent" 
-                            stroke="${isOver ? 'var(--subtle-gray)' : remainingColorHex}" 
+                            stroke="${isOver ? 'var(--olive-tint)' : remainingColorHex}" 
                             stroke-width="${strokeWidth}" />
                     
-                    <!-- Spent circle - Always in orange, layered on top to show spent portion -->
                     <circle cx="50" cy="50" r="${radius}" fill="transparent" stroke="${spentColorHex}" stroke-width="${strokeWidth}"
                             stroke-dasharray="${spentStroke} ${circumference}" stroke-dashoffset="0" stroke-linecap="butt" />
 
-                    <!-- Text is rotated back to horizontal for readability -->
                     <g transform="rotate(90 50 50)">
                         <text x="50" y="48" text-anchor="middle" dominant-baseline="middle" 
                               style="font-size: 7px; font-weight: bold; fill: ${centerTextColor};">
                             ${centerText}
                         </text>
                         <text x="50" y="58" text-anchor="middle" dominant-baseline="middle" 
-                              style="font-size: 6px; font-weight: 600; fill: #6b7280;">
+                              style="font-size: 6px; font-weight: 600; fill: var(--light-text); opacity: 0.7;">
                             ${formatCurrency(expenses)} / ${formatCurrency(budget)}
                         </text>
                     </g>
@@ -509,26 +567,25 @@
             return `
                 <div style="display: flex; flex-direction: column; align-items: center; width: 100%;">
                     ${svgMarkup}
-                    <p style="padding-top: 8px; text-align: center; font-size: 1rem; font-weight: 600; color: ${bottomTextColor};">
+                    <p style="padding-top: 8px; text-align: center; font-size: 1rem; font-weight: 700; color: ${bottomTextColor};">
                         ${bottomText}
                     </p>
                 </div>
             `;
         };
-
+        
         /**
          * Main render function to update the entire application UI structure.
          */
         const renderApp = () => {
             calculateTotals(); 
             const isOverBudget = balance < 0;
-
             const remainingCardClasses = isOverBudget ? 'remaining-red' : 'remaining-green';
 
             appContainer.innerHTML = `
                 <h1 class="app-header">
-                    <span style="font-size: 2rem; margin-right: 8px; font-weight: bold;">₱</span>
-                    Daily Budget Tracker (PHP)
+                    <span style="font-size: 2rem; margin-right: 8px; font-weight: bold;"></span>
+                    Budget-Tracker Dashboard (PHP)
                 </h1>
                 
                 
@@ -538,19 +595,19 @@
                     </div>
                     <div id="summary-grid">
                         <div class="summary-item ${remainingCardClasses}">
-                            <h2>Current Remaining Balance</h2>
+                            <h2>REMAINING BALANCE</h2>
                             <p id="remaining-budget-display">
-                                ${formatCurrency(balance)}
+                                ${isOverBudget ? '-' : ''}${formatCurrency(balance)}
                             </p>
                         </div>
                         <div class="summary-item budget-item">
-                            <h2>Daily Budget (Starting)</h2>
+                            <h2>DAILY BUDGET</h2>
                             <p id="total-budget-display">
                                 ${formatCurrency(budget)}
                             </p>
                         </div>
                         <div class="summary-item expense-item">
-                            <h2>Total Expenses for Current Cycle</h2>
+                            <h2>TOTAL EXPENSES</h2>
                             <p id="total-expenses-display">
                                 ${formatCurrency(expenses)}
                             </p>
@@ -561,10 +618,10 @@
                 
 <div id="tab-bar">
                     <button id="tab-current-btn" class="tab-btn ${currentView === 'current' ? 'active' : ''}">
-                        Active Cycle (${currentExpenses.length} Entries)
+                        <span style="margin-right: 8px;">🏠</span> Active Dashboard
                     </button>
                     <button id="tab-history-btn" class="tab-btn ${currentView === 'history' ? 'active' : ''}">
-                        Daily History (${dailyRecords.length} Days)
+                        <span style="margin-right: 8px;">📚</span> Daily History (${dailyRecords.length} Days)
                     </button>
                 </div>
 
@@ -580,17 +637,11 @@
             saveData(); 
         };
         
-        /**
-         * Attaches listeners for tab switching.
-         */
         const attachViewEventListeners = () => {
             document.getElementById('tab-current-btn').addEventListener('click', () => switchToView('current'));
             document.getElementById('tab-history-btn').addEventListener('click', () => switchToView('history'));
         };
 
-        /**
-         * Switches the application view and re-renders.
-         */
         const switchToView = (view) => {
             if (currentView !== view) {
                 currentView = view;
@@ -598,9 +649,6 @@
             }
         };
 
-        /**
-         * Renders the content (form + history) for the currently active tab.
-         */
         const renderActiveView = () => {
             const container = document.getElementById('view-content-container');
             if (!container) return;
@@ -610,51 +658,35 @@
             if (currentView === 'current') {
                 container.innerHTML = renderCurrentDayManager();
                 
-                // Attach Date Setter logic
+                // Attach logic
                 document.getElementById('set-cycle-date-btn').addEventListener('click', setCycleDate);
-
-                // Attach Budget Setter logic
                 renderBudgetSetter(budget === 0);
-                
-                // Attach Expense Form logic
                 document.getElementById('add-expense-form').addEventListener('submit', addExpense);
-                
-                // Attach Finalization logic
                 document.getElementById('finalize-day-btn').addEventListener('click', finalizeDay);
-
                 renderExpenseHistory();
+
             } else {
                 container.innerHTML = renderDailyHistory();
             }
         };
 
-        /**
-         * Sets the current active cycle date.
-         */
         const setCycleDate = () => {
             const input = document.getElementById('cycle-date-input');
             const newDate = input.value;
             
-            // Simple validation: ensure a date is selected
-            if (!newDate) {
-                 console.error('Please select a valid date.');
-                 return;
-            }
+            if (!newDate) return;
 
             if (newDate !== currentCycleDate) {
-                // If the user changes the date, we treat it as starting a new cycle
-                // BUT we don't clear expenses, as they might be logging a past day.
                 currentCycleDate = newDate;
                 renderApp();
             }
         };
 
 
-        // --- Current Day View Components ---
+        // --- Current Day Dashboard Components ---
 
         const renderCurrentDayManager = () => {
             const today = new Date().toISOString().split('T')[0];
-            // Uses localized long format display (e.g., October 5, 2025)
             const displayDate = new Date(currentCycleDate).toLocaleDateString('en-US', {
                 month: 'long',
                 day: 'numeric',
@@ -662,65 +694,73 @@
             });
             
             return `
-                
-<div style="display: grid; grid-template-columns: 1fr; gap: 24px;">
-                    <section class="card" id="date-setter-card">
-                        <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px;">
-                            Active Budget Cycle Date: <span style="font-size: 1.25rem; font-weight: 800; color: var(--primary-orange);">${displayDate}</span>
-                        </h2>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <input type="date" id="cycle-date-input" value="${currentCycleDate}" max="${today}" style="flex-grow: 1;" required />
-                            <button id="set-cycle-date-btn" class="btn btn-success" style="padding: 12px 16px; flex-shrink: 0;">
-                                Set Date
+                <div id="current-dashboard-grid">
+                    
+                    <div id="dashboard-main-column">
+                        
+                        <section class="card" id="add-expense-card">
+                            <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--olive-tint); padding-bottom: 8px;">
+                                ✍️ Log New Expense
+                            </h2>
+                            <form id="add-expense-form" style="display: grid; grid-template-columns: 2fr 1fr; gap: 16px;">
+                                <input type="text" id="expense-description-input" placeholder="Expense Description (e.g., Coffee, Grab)" required />
+                                <input type="number" id="expense-amount-input" placeholder="Amount (150.75)"
+                                    min="0.01" step="0.01" required />
+                                
+                                <button type="submit" class="btn btn-primary" style="grid-column: span 2;" ${budget === 0 ? 'disabled' : ''} title="${budget === 0 ? 'Set a budget first!' : 'Log Expense'}">
+                                    Log Expense for ${new Date(currentCycleDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                                </button>
+                                ${budget === 0 ? '<p style="grid-column: span 2; color:var(--primary-orange); text-align:center; font-weight:600;">⚠️ Set your budget in the sidebar!</p>' : ''}
+                            </form>
+                        </section>
+
+                        <section class="card" id="expense-history-card" style="flex-grow: 1;">
+                            <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--olive-tint); padding-bottom: 8px;">
+                                🧾 Transaction History
+                            </h2>
+                            <div id="history-list-container" style="max-height: 400px; overflow-y: auto;">
+                                </div>
+                        </section>
+                    </div>
+
+                    
+                    <div id="dashboard-actions-column">
+                        
+                        <section id="budget-setter-card" class="card"></section>
+
+                        <section class="card" id="date-setter-card">
+                            <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 12px; color: var(--primary-orange);">
+                                Cycle Date: ${displayDate}
+                            </h2>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="date" id="cycle-date-input" value="${currentCycleDate}" max="${today}" style="flex-grow: 1;" required />
+                                <button id="set-cycle-date-btn" class="btn btn-success" style="padding: 12px 16px; flex-shrink: 0;">
+                                    Set
+                                </button>
+                            </div>
+                            <p style="margin-top: 10px; font-size: 0.85rem; color: var(--light-text); opacity: 0.6;">
+                                Records will be attributed to this date.
+                            </p>
+                        </section>
+
+                        <section class="card" id="finalize-card" style="background-color: var(--olive-tint);">
+                            <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--primary-orange); margin-bottom: 16px;">
+                                Archive Cycle
+                            </h2>
+                            <p style="font-size: 0.9rem; color: var(--light-text); margin-bottom: 12px;">
+                                Finalize and archive the current budget cycle and expenses.
+                            </p>
+                            <button id="finalize-day-btn" class="btn btn-primary" style="width: 100%;">
+                                Finalize & Start New Day
                             </button>
-                        </div>
-                        <p style="margin-top: 10px; font-size: 0.85rem; color: #6b7280;">
-                            All expenses logged and finalization will be attributed to the date above.
-                        </p>
-                    </section>
+                            <div id="finalize-status" style="margin-top: 10px; text-align: center;"></div>
+                        </section>
 
-                    <section id="budget-setter-card" class="card"></section>
+                    </div>
                 </div>
-                
-                <section class="card" id="add-expense-card">
-                    <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--subtle-gray); padding-bottom: 8px;">Log New Expense</h2>
-                    <form id="add-expense-form" style="display: flex; flex-direction: column; gap: 16px;">
-                        <input type="text" id="expense-description-input" placeholder="Expense Description (e.g., Lunch, Bus Fare)" required />
-                        <input type="number" id="expense-amount-input" placeholder="Amount (e.g., 150.75)"
-                            min="0.01" step="0.01" required />
-                        
-                        <button type="submit" class="btn btn-primary" ${budget === 0 ? 'disabled' : ''} title="${budget === 0 ? 'Set a budget first!' : 'Log Expense'}">
-                            Log Expense for ${new Date(currentCycleDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                        </button>
-                        ${budget === 0 ? '<p style="color:var(--primary-orange); text-align:center; font-weight:600;">⚠️ Please set your initial budget above before logging expenses.</p>' : ''}
-                    </form>
-                </section>
-
-                <section class="card" id="expense-history-card">
-                    <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--white-text); margin-bottom: 16px; border-bottom: 1px solid var(--subtle-gray); padding-bottom: 8px;">Expense Log for ${displayDate}</h2>
-                    <div id="history-list-container">
-                        
-</div>
-                </section>
-
-                <section class="card" id="finalize-card" style="background-color: var(--primary-orange);">
-                    <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--white-text); margin-bottom: 16px;">
-                        Finalize Cycle for ${displayDate}
-                    </h2>
-                    <p style="font-size: 0.9rem; color: #fff; margin-bottom: 12px;">
-                        Click below to archive this date's data and automatically move to the next day. This action cannot be undone.
-                    </p>
-                    <button id="finalize-day-btn" class="btn" style="width: 100%; background-color: var(--dark-olive); color: var(--primary-orange);">
-                        Finalize and Archive Cycle
-                    </button>
-                    <div id="finalize-status" style="margin-top: 10px; text-align: center;"></div>
-                </section>
             `;
         };
 
-        /**
-         * Renders the budget setting UI dynamically.
-         */
         const renderBudgetSetter = (isEditing = false) => {
             const container = document.getElementById('budget-setter-card');
             if (!container) return;
@@ -729,241 +769,160 @@
 
             if (isEditing) {
                 container.innerHTML = `
-                    <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--subtle-gray); padding-bottom: 8px;">
-                        Set/Update Budget Amount
+                    <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--olive-tint); padding-bottom: 8px;">
+                        Set/Update Daily Budget
                     </h2>
                     <div style="display: flex; gap: 8px;">
-                        <input type="number" id="new-budget-input" placeholder="Enter New Budget Amount" value="${budget.toString()}"
+                        <input type="number" id="new-budget-input" placeholder="Enter New Budget Amount" value="${budget.toFixed(2)}"
                             min="0" step="0.01" style="flex-grow: 1;" required />
                         <button id="save-budget-btn" class="btn btn-success" style="padding: 12px 16px; flex-shrink: 0;">
-                            Save Budget
+                            Save
                         </button>
                     </div>
                 `;
                 document.getElementById('save-budget-btn').addEventListener('click', saveBudget);
             } else {
                 container.innerHTML = `
-                    <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; border-bottom: 1px solid var(--subtle-gray); padding-bottom: 8px;">
-                        Current Daily Budget: <span style="color: var(--success-complement); font-weight: 700;">${currentBudgetDisplay}</span>
+                    <h2 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 8px; color: var(--success-complement);">
+                        Daily Budget
                     </h2>
-                    <button id="change-budget-btn" class="btn" style="width: 100%; background-color: var(--subtle-gray); color: var(--dark-olive);">
-                        Change Budget
-                    </button>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <p style="font-size: 1.5rem; font-weight: 800; color: var(--white-text);">
+                            ${currentBudgetDisplay}
+                        </p>
+                        <button id="edit-budget-btn" class="btn" style="background-color: var(--light-olive-tint); color: var(--white-text); padding: 8px 16px;">
+                            Edit
+                        </button>
+                    </div>
                 `;
-                document.getElementById('change-budget-btn').addEventListener('click', () => renderBudgetSetter(true));
+                document.getElementById('edit-budget-btn').addEventListener('click', () => renderBudgetSetter(true));
             }
         };
 
-        /**
-         * Saves the new budget amount to state and localStorage.
-         */
-        const saveBudget = () => {
-            const input = document.getElementById('new-budget-input');
-            const value = parseFloat(input.value.trim());
-
-            if (isNaN(value) || value < 0) {
-                console.error('Please enter a valid positive number for the budget.');
-                return;
-            }
-
-            budget = value;
-            renderApp();
-            renderBudgetSetter(false); 
-        };
-
-        /**
-         * Renders the current expense history list.
-         */
         const renderExpenseHistory = () => {
             const container = document.getElementById('history-list-container');
             if (!container) return;
 
             if (currentExpenses.length === 0) {
-                container.innerHTML = '<div style="text-align: center; color: var(--light-text); padding: 32px;">No expenses logged for this cycle date.</div>';
-                return;
-            }
-
-            container.innerHTML = currentExpenses.map(t => {
-                const displayTime = new Date(t.createdAt).toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit'
-                });
-                
-                return `
-                    <div class="transaction-item">
-                        <div class="transaction-info">
-                            <div style="width: 16px; height: 16px; border-radius: 50%; background-color: var(--primary-orange); flex-shrink: 0;"></div>
-                            <div class="transaction-description-wrapper">
-                                <p>${t.description}</p>
-                                <p>${displayTime}</p>
-                            </div>
-                        </div>
-                        <div class="transaction-amount-actions">
-                            <span style="font-weight: 600; white-space: nowrap;">
-                                - ${formatCurrency(t.amount)}
-                            </span>
-                            <button data-id="${t.id}" class="delete-btn" aria-label="Delete expense">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide-icon"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
-                            </button>
-                        </div>
-                    </div>
+                container.innerHTML = `
+                    <p style="text-align: center; color: var(--light-text); opacity: 0.6; font-style: italic; padding: 20px;">
+                        No transactions yet. Log your first expense!
+                    </p>
                 `;
-            }).join('');
-
-            container.querySelectorAll('.delete-btn').forEach(button => {
-                button.addEventListener('click', (e) => {
-                    deleteExpense(e.currentTarget.dataset.id);
-                });
-            });
-        };
-
-        /**
-         * Adds a new expense for the current cycle.
-         */
-        const addExpense = (e) => {
-            e.preventDefault();
-
-            if (budget === 0) {
-                console.error('Set a budget before logging expenses.');
                 return;
             }
 
-            const descriptionInput = document.getElementById('expense-description-input');
-            const amountInput = document.getElementById('expense-amount-input');
-            
-            const cleanDescription = descriptionInput.value.trim();
-            const cleanAmount = parseFloat(amountInput.value.trim());
-            // The expense date is now the current cycle date
-            const cleanDate = currentCycleDate; 
+            container.innerHTML = currentExpenses.map(t => `
+                <div class="transaction-item">
+                    <div class="transaction-item-details">
+                        <strong>${t.description}</strong>
+                        <small>Logged: ${new Date(t.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</small>
+                    </div>
+                    <div class="transaction-amount-actions">
+                        <span>- ${formatCurrency(t.amount)}</span>
+                        <button class="delete-btn" onclick="deleteExpense('${t.id}')">
+                            &times;
+                        </button>
+                    </div>
+                </div>
+            `).join('');
 
-            if (!cleanDescription || isNaN(cleanAmount) || cleanAmount <= 0) {
-                console.error('Please fill all fields with valid data.');
-                return;
-            }
-
-            const expenseData = {
-                id: generateId(),
-                description: cleanDescription,
-                amount: cleanAmount,
-                date: cleanDate, // Date is set by the cycle date picker
-                createdAt: new Date().toISOString(), // Date created in app
-            };
-
-            currentExpenses.unshift(expenseData); // Add to the start
-            
-            descriptionInput.value = '';
-            amountInput.value = '';
-            
-            renderApp(); 
+            window.deleteExpense = deleteExpense;
         };
+
+
+        // --- History View Components ---
 
         /**
-         * Deletes an expense from the current cycle list.
-         * @param {string} id The expense ID.
+         * Renders the archived daily records.
          */
-        const deleteExpense = (id) => {
-            currentExpenses = currentExpenses.filter(t => t.id !== id);
-            renderApp();
-        };
-
-        // --- Daily History View Components ---
-
         const renderDailyHistory = () => {
+            const container = document.getElementById('view-content-container');
+            if (!container) return '';
+
             if (dailyRecords.length === 0) {
                 return `
                     <section class="card" id="history-archive-card">
-                        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--white-text); margin-bottom: 16px; border-bottom: 1px solid var(--subtle-gray); padding-bottom: 8px;">Daily History Archive</h2>
-                        <div style="text-align: center; color: var(--light-text); padding: 32px;">
-                            No daily cycles have been finalized yet.
-                        </div>
+                        <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--primary-orange); margin-bottom: 16px;">Daily Archive Log</h2>
+                        <p style="text-align: center; color: var(--light-text); opacity: 0.6; font-style: italic; padding: 20px;">
+                            No finalized budget cycles found.
+                        </p>
                     </section>
                 `;
             }
 
-            const historyListMarkup = dailyRecords.map(record => {
+            const historyList = dailyRecords.map(record => {
                 const isOverspent = record.endingBalance < 0;
                 const recordClass = isOverspent ? 'overspent' : '';
-                const titleColorClass = isOverspent ? 'overspent' : '';
-                
-                // Uses localized long format display (e.g., October 5, 2025)
-                const displayDate = new Date(record.date).toLocaleDateString('en-US', {
-                    year: 'numeric',
+                const balancePrefix = isOverspent ? '-' : '';
+                const balanceColor = isOverspent ? 'var(--primary-orange)' : 'var(--success-complement)';
+                const dayDisplayDate = new Date(record.date).toLocaleDateString('en-US', {
                     month: 'long',
-                    day: 'numeric'
+                    day: 'numeric',
+                    year: 'numeric'
                 });
 
-                const absoluteBalance = Math.abs(record.endingBalance);
-                let summaryNoteText;
-                let summaryNoteClass;
-
-                if (isOverspent) {
-                    summaryNoteText = `❌ You went over budget by ${formatCurrency(absoluteBalance)} on ${displayDate}.`;
-                    summaryNoteClass = 'overspent-note';
-                } else if (record.endingBalance > 0) {
-                    summaryNoteText = `🎉 You saved ${formatCurrency(absoluteBalance)} on ${displayDate}! Keep up the great work.`;
-                    summaryNoteClass = 'saved';
-                } else {
-                    summaryNoteText = `✅ You spent exactly your budget amount on ${displayDate}.`;
-                    summaryNoteClass = '';
-                }
+                const transactionList = record.transactions.map(t => `
+                    <li style="display: flex; justify-content: space-between; padding: 6px 0;">
+                        <span style="color: var(--light-text);">${t.description}</span>
+                        <span style="color: var(--primary-orange); font-weight: 600;">- ${formatCurrency(t.amount)}</span>
+                    </li>
+                `).join('');
 
 
                 return `
-                    <div class="history-record ${recordClass}">
-                        <div class="history-title ${titleColorClass}">
-                            Finalized Day: ${displayDate}
-                        </div>
-                        <div class="history-data">
-                            <span class="history-label">Starting Budget:</span>
-                            <span class="history-value">${formatCurrency(record.startingBudget)}</span>
-                        </div>
-                        <div class="history-data">
-                            <span class="history-label">Total Expenses:</span>
-                            <span class="history-value" style="color: var(--primary-orange);">- ${formatCurrency(record.totalExpenses)}</span>
-                        </div>
-                        <div class="history-data">
-                            <span class="history-label" style="font-weight: 700;">Final Balance:</span>
-                            <span class="history-value" style="font-weight: 700; color: ${isOverspent ? 'var(--primary-orange)' : 'var(--success-complement)'};">
-                                ${formatCurrency(record.endingBalance)}
+                    <div class="history-record ${recordClass}" onclick="toggleDetails('${record.id}')">
+                        <div class="history-summary" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>📅 ${dayDisplayDate}</span>
+                            <span style="color: ${balanceColor}; font-weight: 800;">
+                                ${isOverspent ? 'OVERSPENT' : 'SUCCESS'} (${balancePrefix}${formatCurrency(record.endingBalance)})
                             </span>
                         </div>
-                        
-                        
-<div class="summary-note ${summaryNoteClass}">
-                            ${summaryNoteText}
+                        <div id="details-${record.id}" class="history-details" style="display:none;">
+                            <p style="margin-top: 10px; font-weight: 700; color: var(--success-complement);">Budget: ${formatCurrency(record.startingBudget)}</p>
+                            <p style="font-weight: 700; color: var(--primary-orange);">Expenses: ${formatCurrency(record.totalExpenses)}</p>
+                            <p style="margin-top: 10px; font-weight: 700; color: var(--light-text); opacity: 0.8;">Transactions:</p>
+                            <ul style="list-style: none; padding-left: 0;">
+                                ${transactionList}
+                            </ul>
                         </div>
-                        
-<p style="text-align: right; margin-top: 8px; font-size: 0.75rem; color: #9ca3af;">
-                            ${record.transactions.length} transactions logged.
-                        </p>
                     </div>
                 `;
             }).join('');
 
+
             return `
                 <section class="card" id="history-archive-card">
-                    <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--white-text); margin-bottom: 16px; border-bottom: 1px solid var(--subtle-gray); padding-bottom: 8px;">Daily History Archive</h2>
-                    <div id="daily-history-list" style="max-height: 60vh; overflow-y: auto; padding-right: 5px;">
-                        ${historyListMarkup}
+                    <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--primary-orange); margin-bottom: 16px;">Daily Archive Log</h2>
+                    <p style="color: var(--light-text); opacity: 0.7; margin-bottom: 20px;">Click on any record to view details.</p>
+                    <div id="daily-history-list">
+                        ${historyList}
                     </div>
                 </section>
             `;
         };
-
-
-        // --- Initialization ---
         
-        const initializeApp = () => {
-            loadData();
-            // Check if the application container exists before rendering
-            if (appContainer) {
-                renderApp();
-            } else {
-                console.error('App container not found.');
+        const toggleDetails = (id) => {
+            const details = document.getElementById(`details-${id}`);
+            if (details) {
+                details.style.display = details.style.display === 'none' ? 'block' : 'none';
             }
         };
 
-        window.onload = initializeApp;
+
+        // --- Initialization ---
+
+        const initApp = () => {
+            loadData();
+            document.getElementById('loading-indicator').remove();
+            renderApp();
+            
+            // Expose global functions
+            window.toggleDetails = toggleDetails;
+            window.deleteExpense = deleteExpense;
+        };
+
+        document.addEventListener('DOMContentLoaded', initApp);
     </script>
 </body>
 </html>
